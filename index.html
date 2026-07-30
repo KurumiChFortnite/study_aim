@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>STUDY AIM - 勉強×FPS射撃練習</title>
+<style>
+:root{
+  --bg:#07111e;--panel:#0d1c2d;--panel2:#13263b;--text:#eef7ff;--muted:#9fb5c9;
+  --accent:#35d6ff;--good:#56e98b;--bad:#ff6476;--gold:#ffd45a;--line:#29445e;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans JP",sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+.screen{position:absolute;inset:0}
+#menuScreen{overflow:auto;padding:18px;background:radial-gradient(circle at 50% 5%,#16334b 0,#07111e 55%)}
+.menu-wrap{width:min(920px,100%);margin:auto}
+.logo{text-align:center;margin:4px 0 12px}
+.logo h1{font-size:clamp(34px,8vw,72px);margin:0;letter-spacing:.05em;text-shadow:0 0 24px #35d6ff77}
+.logo p{color:var(--muted);margin:4px 0 16px}
+.panel{background:#0d1c2ddd;border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 16px 50px #0007;margin-bottom:14px}
+.panel h2{font-size:18px;margin:0 0 12px}
+.grade-grid,.subject-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px}
+.check-card{display:flex;align-items:center;gap:8px;padding:11px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;user-select:none}
+.check-card input{width:20px;height:20px;accent-color:var(--accent);flex:none}.grade-label{display:block;text-align:center;line-height:1.25;font-weight:800;flex:1}
+.actions{display:grid;grid-template-columns:1fr auto auto;gap:10px;margin-top:14px}
+.primary,.secondary,.danger{border:0;border-radius:12px;padding:12px 16px;font-weight:800}
+.primary{background:linear-gradient(135deg,#35d6ff,#4d7cff);color:#04101c;box-shadow:0 0 24px #35d6ff55}
+.secondary{background:#19344e;color:var(--text);border:1px solid #355774}
+.danger{background:#562735;color:#fff;border:1px solid #9d4055}
+.small{font-size:12px;color:var(--muted);line-height:1.6}
+.score-list{display:grid;gap:7px;max-height:170px;overflow:auto}
+.score-row{display:flex;justify-content:space-between;gap:12px;background:#0a1726;padding:9px 11px;border-radius:10px;border:1px solid #203951}
+#gameScreen{display:flex;flex-direction:column;background:#02070d}
+#topHud{height:128px;flex:none;background:linear-gradient(180deg,#10243a,#091522);border-bottom:1px solid #29445e;padding:8px 12px;display:grid;grid-template-columns:190px 1fr 220px;gap:12px;align-items:center}
+.hud-box{height:100%;background:#091522cc;border:1px solid #27445f;border-radius:12px;padding:9px;display:flex;flex-direction:column;justify-content:center}
+.hud-label{font-size:12px;color:var(--muted)}
+.hud-value{font-weight:900;font-size:22px}
+#questionText{font-size:clamp(15px,2vw,23px);font-weight:800;line-height:1.35;text-align:center}
+#questionMeta{text-align:center;color:#8fcde0;font-size:12px;margin-top:5px}
+#arenaWrap{position:relative;flex:1;min-height:0;overflow:hidden}
+#gameCanvas{width:100%;height:100%;display:block;background:#06101a;touch-action:none;cursor:none}
+#crosshair{pointer-events:none;position:absolute;width:28px;height:28px;transform:translate(-50%,-50%);left:50%;top:50%;filter:drop-shadow(0 0 3px #000)}
+#crosshair:before,#crosshair:after{content:"";position:absolute;background:#fff;border-radius:2px}
+#crosshair:before{left:13px;top:0;width:2px;height:28px}
+#crosshair:after{left:0;top:13px;width:28px;height:2px}
+#crosshair .dot{position:absolute;left:11px;top:11px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+#cooldown{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);width:min(360px,75%);height:16px;border:2px solid #dff6ff;border-radius:99px;background:#07111ecc;overflow:hidden;opacity:0;transition:.15s}
+#cooldown.show{opacity:1}
+#cooldownFill{height:100%;width:0;background:linear-gradient(90deg,#ff6476,#ffd45a)}
+#statusToast{position:absolute;left:50%;top:18px;transform:translateX(-50%);padding:10px 18px;border-radius:999px;background:#10243aee;border:1px solid #42637e;font-weight:800;opacity:0;transition:.18s;pointer-events:none;white-space:nowrap}
+#statusToast.show{opacity:1}
+#mobileControls{display:none;flex:none;height:190px;background:#0b1827;border-top:1px solid #29445e;padding:10px;gap:12px;touch-action:none}
+.aim-pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(3,52px);gap:5px;align-content:center;justify-content:center;flex:1}
+.mobile-btn{border:1px solid #41627d;background:#17314a;color:#fff;border-radius:12px;font-size:22px;font-weight:900;box-shadow:inset 0 -4px 0 #091522}
+.mobile-btn:active{transform:translateY(2px);box-shadow:inset 0 -2px 0 #091522}
+#fireBtn{width:130px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ff8592,#b72a43 68%);border:5px solid #ffbdc6;font-size:22px;color:#fff;font-weight:900}
+#fireBtn.cool{filter:grayscale(.8);opacity:.55}
+.modal-bg{position:absolute;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+.modal{width:min(620px,100%);max-height:90vh;overflow:auto;background:#10243a;border:1px solid #42637e;border-radius:18px;padding:20px;box-shadow:0 25px 80px #000}
+.modal h2{margin-top:0}
+.pause-actions{display:grid;gap:10px;margin-top:14px}
+.pause-actions button{width:100%}
+.setting-row{display:grid;grid-template-columns:1fr 1.2fr;gap:12px;align-items:center;margin:12px 0}
+.setting-row input[type=range]{width:100%}
+kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:3px 8px;border-radius:6px}
+.result-big{text-align:center;font-size:46px;font-weight:1000;color:var(--gold)}
+.result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.result-item{text-align:center;background:#0a1726;padding:12px;border-radius:12px}
+.result-item b{display:block;font-size:24px}
+.flash{animation:flash .18s}
+@keyframes flash{50%{filter:brightness(2)}}
+@media(max-width:720px){
+ #topHud{height:142px;grid-template-columns:90px 1fr 100px;gap:6px;padding:6px}
+ .hud-box{padding:5px}.hud-value{font-size:17px}.hud-label{font-size:10px}
+ #questionText{font-size:14px}.actions{grid-template-columns:1fr 1fr}.actions .primary{grid-column:1/-1}
+ #mobileControls{display:flex}
+ #arenaWrap{min-height:260px}
+}
+@media(max-height:700px) and (max-width:720px){#topHud{height:118px}#mobileControls{height:155px}.aim-pad{grid-template-columns:repeat(3,55px);grid-template-rows:repeat(3,40px)}#fireBtn{width:105px}}
+</style>
+</head>
+<body>
+<section id="menuScreen" class="screen">
+ <div class="menu-wrap">
+  <div class="logo"><h1>STUDY AIM</h1><p>勉強しながらエイム練習。15問のクリアタイムに挑戦！</p></div>
+  <div class="panel">
+   <h2>① 出題する学年・学期（複数選択可）</h2>
+   <div class="grade-grid" id="gradeChecks"></div>
+   <p class="small">学年・学期の単独選択と複数選択は、別々の記録として保存されます。「(応用)」は標準範囲を土台に、複数の知識や手順を組み合わせる問題です。</p>
+  </div>
+  <div class="panel">
+   <h2>② 教科</h2>
+   <div class="subject-grid" id="subjectChecks"></div>
+  </div>
+  <div class="panel">
+   <h2>ハイスコア（ベストタイム）</h2>
+   <div id="scoreList" class="score-list"></div>
+   <div class="actions">
+    <button id="startBtn" class="primary">ゲームスタート</button>
+    <button id="settingsBtn" class="secondary">⚙ 設定</button>
+    <button id="resetScoresBtn" class="danger">記録リセット</button>
+   </div>
+  </div>
+  <div class="panel small">
+   <b>遊び方：</b> 3Dルーム内の的を中央照準で狙います。PCはWASDで移動、マウスで視点操作、クリックで発射します。矢印キーでも視点を動かせます。スマホはスワイプで視点移動、短いタップで発射します。1つの答えに対応する4個の的をすべて撃つと判定され、空振りすると0.75秒間撃てません。
+  </div>
+ </div>
+</section>
+
+<section id="gameScreen" class="screen hidden">
+ <header id="topHud">
+  <div class="hud-box"><span class="hud-label">進行</span><span class="hud-value"><span id="qNumber">1</span> / 15</span><span class="hud-label">正解 <span id="correctCount">0</span></span></div>
+  <div class="hud-box"><div id="questionText">問題文</div><div id="questionMeta"></div></div>
+  <div class="hud-box"><span class="hud-label">TIME</span><span class="hud-value" id="timerText">00:00.000</span><span class="hud-label">命中率 <span id="accuracyText">100%</span></span></div>
+ </header>
+ <div id="arenaWrap">
+  <canvas id="gameCanvas"></canvas>
+  <div id="crosshair"><span class="dot"></span></div>
+  <div id="cooldown"><div id="cooldownFill"></div></div>
+  <div id="statusToast"></div>
+ </div>
+ <div id="mobileControls">
+  <div class="aim-pad">
+   <span></span><button class="mobile-btn aim" data-dx="0" data-dy="-1">▲</button><span></span>
+   <button class="mobile-btn aim" data-dx="-1" data-dy="0">◀</button><button class="mobile-btn aim" data-dx="0" data-dy="1">▼</button><button class="mobile-btn aim" data-dx="1" data-dy="0">▶</button>
+   <span></span><button class="mobile-btn" id="centerBtn">◎</button><span></span>
+  </div>
+  <button id="fireBtn">発射</button>
+ </div>
+</section>
+
+<div id="pauseModal" class="modal-bg hidden">
+ <div class="modal">
+  <h2 style="text-align:center">一時停止</h2>
+  <p class="small" style="text-align:center">タイマーは停止しています。</p>
+  <div class="pause-actions">
+   <button id="resumeBtn" class="primary">ゲームを再開</button>
+   <button id="pauseSettingsBtn" class="secondary">⚙ 設定変更</button>
+   <button id="pauseHomeBtn" class="danger">ホームに戻る</button>
+  </div>
+ </div>
+</div>
+
+<div id="settingsModal" class="modal-bg hidden">
+ <div class="modal">
+  <h2>設定</h2>
+  <div class="setting-row"><label>視点感度</label><div><input id="sensitivity" type="range" min="0.03" max="2.5" step="0.01"><span id="sensitivityValue"></span></div></div>
+  <div class="setting-row"><label>視点操作</label><label class="check-card" style="margin:0"><input id="invertView" type="checkbox">上下左右を反転する</label></div>
+  <div class="setting-row"><label>発射キー</label><button id="bindFire" class="secondary">クリックして変更</button></div>
+  <div class="setting-row"><label>照準を中央へ戻すキー</label><button id="bindCenter" class="secondary">クリックして変更</button></div>
+  <div class="setting-row"><label>移動 / 視点</label><div><kbd id="keyUpLabel"></kbd> <kbd id="keyLeftLabel"></kbd> <kbd id="keyDownLabel"></kbd> <kbd id="keyRightLabel"></kbd></div></div>
+  <p class="small">発射キーはマウスクリックとは別に設定できます。WASDはキャラクター移動、矢印キーは視点操作です。</p>
+  <div class="actions"><button id="saveSettings" class="primary">保存</button><button id="closeSettings" class="secondary">閉じる</button></div>
+ </div>
+</div>
+
+<div id="explainModal" class="modal-bg hidden">
+ <div class="modal"><h2 id="explainTitle">解説</h2><p id="explainText"></p><button id="nextBtn" class="primary" style="width:100%">読んだ（同じ問題に再挑戦）</button></div>
+</div>
+
+<div id="resultModal" class="modal-bg hidden">
+ <div class="modal"><h2 style="text-align:center">15問クリア！</h2><div id="resultTime" class="result-big"></div><div class="result-grid"><div class="result-item">正解数<b id="resultCorrect"></b></div><div class="result-item">命中率<b id="resultAccuracy"></b></div><div class="result-item">ミス射撃<b id="resultMisses"></b></div></div><p id="recordMessage" style="text-align:center"></p><div class="actions"><button id="retryBtn" class="primary">同じ設定でもう一度</button><button id="menuBtn" class="secondary">メニューへ</button></div></div>
+</div>
+
+<script>
+'use strict';
+
+/* =========================================================
+   問題データ
+   grade: g4/g5/g6/j1/j2/j3
+   subject: 国語/算数・数学/理科/社会/英語
+   choices: 2～4個、answer: 正解の添字（0始まり）
+   新しい問題は、この配列へ同じ形式で追加するだけです。
+   ========================================================= */
+const QUESTIONS = [
+// 小4 国語
+{grade:'g4',subject:'国語',unit:'漢字・語句',q:'「協力」の正しい読み方は？',choices:['きょうりょく','きょりょう','きょうりき'],answer:0,ex:'「協力」は「きょうりょく」と読み、力を合わせることです。'},
+{grade:'g4',subject:'国語',unit:'主語・述語',q:'「弟が 公園で 遊ぶ」の述語は？',choices:['弟が','公園で','遊ぶ'],answer:2,ex:'述語は、主語が「どうする・どんなだ・何だ」を表す部分です。'},
+{grade:'g4',subject:'国語',unit:'ことわざ',q:'「石の上にも三年」に近い意味は？',choices:['すぐにあきらめる','辛抱強く続ける','急いで行動する'],answer:1,ex:'つらくても長く辛抱すれば成果が出る、という意味です。'},
+// 小4 算数
+{grade:'g4',subject:'算数・数学',unit:'わり算',q:'864 ÷ 8 は？',choices:['98','108','118','128'],answer:1,ex:'800÷8=100、64÷8=8なので、答えは108です。'},
+{grade:'g4',subject:'算数・数学',unit:'角度',q:'直角の角度は？',choices:['45°','90°','180°'],answer:1,ex:'直角は90度です。'},
+{grade:'g4',subject:'算数・数学',unit:'小数',q:'0.7 + 0.35 は？',choices:['0.42','0.95','1.05','1.35'],answer:2,ex:'小数点をそろえて計算すると1.05です。'},
+// 小4 理科
+{grade:'g4',subject:'理科',unit:'季節と生物',q:'春に多く見られる変化は？',choices:['多くの植物が芽を出す','池の水が必ず凍る','日が最も短くなる'],answer:0,ex:'春は気温が上がり、多くの植物が芽を出して成長を始めます。'},
+{grade:'g4',subject:'理科',unit:'電気',q:'乾電池2個を直列につなぐと、豆電球は一般にどうなる？',choices:['明るくなる','暗くなる','必ず消える'],answer:0,ex:'直列つなぎでは電圧が大きくなり、一般に豆電球は明るくなります。'},
+{grade:'g4',subject:'理科',unit:'水の変化',q:'水がこおり始める温度は、およそ何℃？',choices:['0℃','50℃','100℃'],answer:0,ex:'標準的な気圧では、水はおよそ0℃でこおり始めます。'},
+// 小4 社会
+{grade:'g4',subject:'社会',unit:'都道府県',q:'日本の都道府県はいくつ？',choices:['43','45','47','49'],answer:2,ex:'日本には1都1道2府43県、合わせて47都道府県があります。'},
+{grade:'g4',subject:'社会',unit:'地図',q:'地図で一般に上はどの方角？',choices:['北','南','東','西'],answer:0,ex:'一般的な地図では上が北です。'},
+{grade:'g4',subject:'社会',unit:'水道',q:'家庭に水を届ける前に、水をきれいにする施設は？',choices:['浄水場','消防署','発電所'],answer:0,ex:'浄水場では、川などの水を安全に使えるように処理します。'},
+// 小4 英語
+{grade:'g4',subject:'英語',unit:'あいさつ',q:'「おはよう」に当たる英語は？',choices:['Good morning.','Good night.','See you.'],answer:0,ex:'朝のあいさつは “Good morning.” です。'},
+{grade:'g4',subject:'英語',unit:'曜日',q:'Monday の意味は？',choices:['月曜日','水曜日','日曜日'],answer:0,ex:'Monday は月曜日です。'},
+{grade:'g4',subject:'英語',unit:'好きな物',q:'「私はりんごが好きです」は？',choices:['I like apples.','I am apples.','I can apples.'],answer:0,ex:'「～が好き」は “I like ～.” を使います。'},
+
+// 小5
+{grade:'g5',subject:'国語',unit:'敬語',q:'「先生が来る」の尊敬語として適切なのは？',choices:['先生が参る','先生がいらっしゃる','先生がおる'],answer:1,ex:'相手の動作を高める尊敬語では「いらっしゃる」を使います。'},
+{grade:'g5',subject:'国語',unit:'熟語',q:'「原因」と反対に近い意味の言葉は？',choices:['理由','結果','目的'],answer:1,ex:'原因によって起こったものが結果です。'},
+{grade:'g5',subject:'国語',unit:'文章構成',q:'意見を支えるために示すものは？',choices:['根拠','題名だけ','文字数'],answer:0,ex:'説得力のある文章では、意見と、それを支える根拠を示します。'},
+{grade:'g5',subject:'算数・数学',unit:'割合',q:'200円の25%は？',choices:['25円','40円','50円','75円'],answer:2,ex:'200×0.25=50なので50円です。'},
+{grade:'g5',subject:'算数・数学',unit:'体積',q:'縦3cm、横4cm、高さ5cmの直方体の体積は？',choices:['12㎤','20㎤','47㎤','60㎤'],answer:3,ex:'直方体の体積は縦×横×高さ。3×4×5=60㎤です。'},
+{grade:'g5',subject:'算数・数学',unit:'分数',q:'1/3 + 1/6 は？',choices:['1/9','1/2','2/9','2/3'],answer:1,ex:'1/3を2/6に直すと、2/6+1/6=3/6=1/2です。'},
+{grade:'g5',subject:'理科',unit:'植物の発芽',q:'植物の種子の発芽に通常必要でないものは？',choices:['水','適当な温度','空気','日光'],answer:3,ex:'発芽には水・適当な温度・空気が必要です。日光は発芽後の成長で重要です。'},
+{grade:'g5',subject:'理科',unit:'天気',q:'雲の量が増え、気圧が下がると、天気は一般にどうなりやすい？',choices:['悪くなりやすい','必ず晴れる','変化しない'],answer:0,ex:'低気圧が近づくと雲が増え、雨など天気が崩れやすくなります。'},
+{grade:'g5',subject:'理科',unit:'振り子',q:'振り子が1往復する時間を変えやすい条件は？',choices:['おもりの色','糸の長さ','おもりの材質だけ'],answer:1,ex:'振り子の1往復の時間は、主に糸の長さで変わります。'},
+{grade:'g5',subject:'社会',unit:'国土',q:'日本で最も面積が大きい都道府県は？',choices:['東京都','北海道','長野県','岩手県'],answer:1,ex:'日本で最も面積が大きい都道府県は北海道です。'},
+{grade:'g5',subject:'社会',unit:'農業',q:'米作りで、苗を水田に植える作業は？',choices:['田植え','稲刈り','脱穀'],answer:0,ex:'育てた苗を水田に植える作業を田植えといいます。'},
+{grade:'g5',subject:'社会',unit:'工業',q:'原料を加工して製品を作る産業は？',choices:['農業','漁業','工業'],answer:2,ex:'原料を加工し、さまざまな製品を作る産業が工業です。'},
+{grade:'g5',subject:'英語',unit:'できること',q:'「私は泳ぐことができます」は？',choices:['I can swim.','I am swim.','I like swim can.'],answer:0,ex:'「～できる」は can + 動詞の原形です。'},
+{grade:'g5',subject:'英語',unit:'時刻',q:'It is seven thirty. は何時？',choices:['7時13分','7時30分','3時7分'],answer:1,ex:'seven thirty は7時30分です。'},
+{grade:'g5',subject:'英語',unit:'道案内',q:'「右に曲がって」は？',choices:['Turn right.','Go back left.','Stop right.'],answer:0,ex:'「右に曲がる」は turn right です。'},
+
+// 小6
+{grade:'g6',subject:'国語',unit:'文法',q:'「静かな町」の「静かな」の品詞は？',choices:['名詞','動詞','形容動詞','接続詞'],answer:2,ex:'「静かだ」と言い切れるため、形容動詞です。'},
+{grade:'g6',subject:'国語',unit:'慣用句',q:'「胸をなで下ろす」の意味は？',choices:['安心する','怒る','自慢する'],answer:0,ex:'心配がなくなり、ほっと安心することを表します。'},
+{grade:'g6',subject:'国語',unit:'読解',q:'筆者の主張を見つけるとき、特に注目するものは？',choices:['理由や結論を示す言葉','漢字の画数','行の長さ'],answer:0,ex:'「なぜなら」「つまり」など、理由や結論を示す言葉が手がかりになります。'},
+{grade:'g6',subject:'算数・数学',unit:'比',q:'比 6:9 を最も簡単にすると？',choices:['2:3','3:2','6:3','1:9'],answer:0,ex:'6と9を最大公約数3で割ると2:3です。'},
+{grade:'g6',subject:'算数・数学',unit:'速さ',q:'120kmを2時間で進む速さは？',choices:['40km/h','60km/h','120km/h','240km/h'],answer:1,ex:'速さ=道のり÷時間。120÷2=60km/hです。'},
+{grade:'g6',subject:'算数・数学',unit:'円',q:'半径5cmの円の直径は？',choices:['2.5cm','5cm','10cm','25cm'],answer:2,ex:'直径は半径の2倍なので10cmです。'},
+{grade:'g6',subject:'理科',unit:'呼吸',q:'人が呼吸で体内に多く取り入れる気体は？',choices:['酸素','二酸化炭素','水素'],answer:0,ex:'人は酸素を取り入れ、二酸化炭素を多く含む息を出します。'},
+{grade:'g6',subject:'理科',unit:'てこ',q:'てこで小さい力で物を動かすには？',choices:['支点から力点を遠くする','力点を支点に近づける','作用点を遠くするだけ'],answer:0,ex:'支点から力点までの距離を長くすると、小さい力で動かしやすくなります。'},
+{grade:'g6',subject:'理科',unit:'月',q:'月が光って見える理由は？',choices:['月自身が燃えている','太陽の光を反射している','地球の光だけを出す'],answer:1,ex:'月は太陽の光を反射して光って見えます。'},
+{grade:'g6',subject:'社会',unit:'日本史',q:'日本国憲法が施行された年は？',choices:['1945年','1947年','1950年','1964年'],answer:1,ex:'日本国憲法は1947年5月3日に施行されました。'},
+{grade:'g6',subject:'社会',unit:'政治',q:'国会・内閣・裁判所が権力を分ける仕組みは？',choices:['三権分立','地方自治','直接民主制'],answer:0,ex:'立法・行政・司法を分け、互いに抑制する仕組みが三権分立です。'},
+{grade:'g6',subject:'社会',unit:'歴史',q:'鎌倉幕府を開いた人物は？',choices:['聖徳太子','源頼朝','徳川家康','豊臣秀吉'],answer:1,ex:'源頼朝が鎌倉に武士の政権を築きました。'},
+{grade:'g6',subject:'英語',unit:'過去',q:'「私は昨日サッカーをしました」は？',choices:['I play soccer yesterday.','I played soccer yesterday.','I playing soccer yesterday.'],answer:1,ex:'過去のことなので play を played にします。'},
+{grade:'g6',subject:'英語',unit:'疑問文',q:'「あなたは何を食べたいですか」は？',choices:['What do you want to eat?','Where are you eat?','Who want eat?'],answer:0,ex:'「何を～したい」は What do you want to ～? です。'},
+{grade:'g6',subject:'英語',unit:'紹介',q:'He is good at cooking. の意味は？',choices:['彼は料理が得意です','彼は料理が嫌いです','彼は料理を食べません'],answer:0,ex:'be good at ～ は「～が得意」です。'},
+
+// 中1
+{grade:'j1',subject:'国語',unit:'文法',q:'「とても美しい」の「とても」の品詞は？',choices:['副詞','名詞','助動詞','接続詞'],answer:0,ex:'「とても」は「美しい」を詳しくする副詞です。'},
+{grade:'j1',subject:'国語',unit:'表現技法',q:'「雪のように白い」で使われている表現技法は？',choices:['直喩','擬人法','反復法'],answer:0,ex:'「ように」を使ってたとえる表現は直喩です。'},
+{grade:'j1',subject:'国語',unit:'古典',q:'古文の「いと」の意味として一般的なものは？',choices:['とても','少しも','いつも'],answer:0,ex:'古文の「いと」は「とても・たいへん」の意味で使われます。'},
+{grade:'j1',subject:'算数・数学',unit:'正負の数',q:'(-4) + 7 は？',choices:['-11','-3','3','11'],answer:2,ex:'数直線で-4から右へ7進むので3です。'},
+{grade:'j1',subject:'算数・数学',unit:'文字式',q:'a×5 を文字式で表すと？',choices:['a+5','5a','a5','a÷5'],answer:1,ex:'文字式では数を文字の前に書き、かける記号を省略して5aとします。'},
+{grade:'j1',subject:'算数・数学',unit:'方程式',q:'3x=18 のとき x は？',choices:['3','6','15','54'],answer:1,ex:'両辺を3で割るとx=6です。'},
+{grade:'j1',subject:'理科',unit:'植物',q:'光合成で植物が取り入れる気体は？',choices:['酸素','二酸化炭素','窒素だけ'],answer:1,ex:'植物は光合成で二酸化炭素と水から養分を作り、酸素を放出します。'},
+{grade:'j1',subject:'理科',unit:'物質',q:'水に溶けた物質を取り出すため、水を蒸発させる操作は？',choices:['蒸発乾固','ろ過','蒸留だけ'],answer:0,ex:'溶液から水を蒸発させ、溶質を取り出す操作を蒸発乾固といいます。'},
+{grade:'j1',subject:'理科',unit:'光',q:'鏡で光がはね返る現象は？',choices:['反射','屈折','分解'],answer:0,ex:'光が物体の表面ではね返る現象を反射といいます。'},
+{grade:'j1',subject:'社会',unit:'地理',q:'緯度0度の線は？',choices:['赤道','本初子午線','日付変更線'],answer:0,ex:'緯度0度は赤道です。'},
+{grade:'j1',subject:'社会',unit:'歴史',q:'邪馬台国の女王として知られる人物は？',choices:['卑弥呼','紫式部','推古天皇'],answer:0,ex:'中国の歴史書には、邪馬台国の女王として卑弥呼が記されています。'},
+{grade:'j1',subject:'社会',unit:'地理',q:'世界で最も面積が大きい国は？',choices:['中国','カナダ','ロシア','アメリカ'],answer:2,ex:'世界で最も面積が大きい国はロシアです。'},
+{grade:'j1',subject:'英語',unit:'be動詞',q:'She ___ a student. に入る語は？',choices:['am','is','are','be'],answer:1,ex:'主語がSheの現在形なのでbe動詞はisです。'},
+{grade:'j1',subject:'英語',unit:'一般動詞',q:'He ___ tennis every Sunday. に入る語は？',choices:['play','plays','playing'],answer:1,ex:'主語が三人称単数のHeなので、現在形の動詞にsを付けます。'},
+{grade:'j1',subject:'英語',unit:'疑問詞',q:'「どこ」をたずねる疑問詞は？',choices:['When','Where','Who','Why'],answer:1,ex:'場所をたずねる疑問詞はWhereです。'},
+
+// 中2
+{grade:'j2',subject:'国語',unit:'品詞',q:'「読ませる」の「せる」は何？',choices:['助動詞','副詞','接続詞','名詞'],answer:0,ex:'「せる」は使役の意味を加える助動詞です。'},
+{grade:'j2',subject:'国語',unit:'敬語',q:'「私が先生の所へ行く」の謙譲語は？',choices:['私が先生の所へ参る','私が先生の所へいらっしゃる','私が先生の所へおいでになる'],answer:0,ex:'自分の動作をへりくだる謙譲語では「参る」を使います。'},
+{grade:'j2',subject:'国語',unit:'論説文',q:'反対意見を示した上で自分の主張を強める構成は？',choices:['反論を踏まえる構成','時間順だけの構成','箇条書きだけ'],answer:0,ex:'想定される反論を示して答えると、主張の説得力を高められます。'},
+{grade:'j2',subject:'算数・数学',unit:'連立方程式',q:'x+y=7、x-y=1 の解は？',choices:['x=3,y=4','x=4,y=3','x=6,y=1','x=7,y=0'],answer:1,ex:'2式を足すと2x=8でx=4。x+y=7よりy=3です。'},
+{grade:'j2',subject:'算数・数学',unit:'一次関数',q:'y=3x+2 の傾きは？',choices:['2','3','5','x'],answer:1,ex:'y=ax+bのaが傾きなので3です。'},
+{grade:'j2',subject:'算数・数学',unit:'確率',q:'公平なコインを1回投げ、表が出る確率は？',choices:['0','1/4','1/2','1'],answer:2,ex:'表と裏の2通りが同様に確からしいので1/2です。'},
+{grade:'j2',subject:'理科',unit:'化学変化',q:'物質が酸素と結びつく変化は？',choices:['酸化','還元だけ','中和'],answer:0,ex:'物質が酸素と結びつく化学変化を酸化といいます。'},
+{grade:'j2',subject:'理科',unit:'電流',q:'電圧をV、電流をI、抵抗をRとするとオームの法則は？',choices:['V=IR','I=VR','R=V+I'],answer:0,ex:'オームの法則はV=IRです。'},
+{grade:'j2',subject:'理科',unit:'気象',q:'空気が上昇すると、一般に温度はどうなる？',choices:['下がる','上がる','必ず一定'],answer:0,ex:'上昇した空気は膨張し、温度が下がって雲ができやすくなります。'},
+{grade:'j2',subject:'社会',unit:'歴史',q:'江戸幕府を開いた人物は？',choices:['徳川家康','織田信長','足利尊氏','源義経'],answer:0,ex:'徳川家康が1603年に征夷大将軍となり、江戸幕府を開きました。'},
+{grade:'j2',subject:'社会',unit:'地理',q:'EUは主にどの地域の国々による連合？',choices:['ヨーロッパ','南アメリカ','東南アジア','アフリカ'],answer:0,ex:'EUはヨーロッパの国々を中心とする地域統合です。'},
+{grade:'j2',subject:'社会',unit:'歴史',q:'明治政府が藩を廃止して県を置いた政策は？',choices:['廃藩置県','版籍奉還','地租改正'],answer:0,ex:'1871年、藩を廃止して府県を置く廃藩置県が行われました。'},
+{grade:'j2',subject:'英語',unit:'過去進行形',q:'I ___ studying at eight. に入る語は？',choices:['am','was','were','be'],answer:1,ex:'主語Iの過去進行形はwas + 動詞ingです。'},
+{grade:'j2',subject:'英語',unit:'比較',q:'Tom is ___ than Ken.（背が高い）',choices:['tall','taller','tallest','more tall'],answer:1,ex:'2人を比べる比較級なのでtallerです。'},
+{grade:'j2',subject:'英語',unit:'不定詞',q:'I want to play soccer. の to play は？',choices:['不定詞','現在進行形','受動態'],answer:0,ex:'to + 動詞の原形は不定詞です。ここでは「サッカーをしたい」です。'},
+
+// 中3
+{grade:'j3',subject:'国語',unit:'文法',q:'「雨が降ったので、試合は中止だ」の「ので」の働きは？',choices:['原因・理由を示す','逆接を示す','並列を示す'],answer:0,ex:'「ので」は前の内容を原因・理由として後につなげます。'},
+{grade:'j3',subject:'国語',unit:'和歌',q:'短歌の基本的な音数は？',choices:['5・7・5','5・7・5・7・7','7・7・7・5'],answer:1,ex:'短歌は基本的に5・7・5・7・7の31音です。'},
+{grade:'j3',subject:'国語',unit:'文章表現',q:'資料を引用するときに必要なことは？',choices:['出典を示す','文章を変えず無断使用する','自分の文として書く'],answer:0,ex:'引用部分を明確にし、著者・資料名などの出典を示します。'},
+{grade:'j3',subject:'算数・数学',unit:'平方根',q:'√49 は？',choices:['6','7','14','49'],answer:1,ex:'7×7=49なので√49=7です。'},
+{grade:'j3',subject:'算数・数学',unit:'二次方程式',q:'x²=25 の解は？',choices:['x=5だけ','x=-5だけ','x=±5','x=25'],answer:2,ex:'5²も(-5)²も25なので、解はx=±5です。'},
+{grade:'j3',subject:'算数・数学',unit:'相似',q:'相似比が2:3の図形で、面積比は？',choices:['2:3','4:9','8:27','3:2'],answer:1,ex:'面積比は相似比の2乗なので2²:3²=4:9です。'},
+{grade:'j3',subject:'理科',unit:'遺伝',q:'生物の形質を伝えるもとになるものは？',choices:['遺伝子','血液型だけ','食べ物だけ'],answer:0,ex:'形質に関する情報は遺伝子によって親から子へ伝わります。'},
+{grade:'j3',subject:'理科',unit:'イオン',q:'酸性の水溶液に共通して存在するイオンは？',choices:['水素イオン','水酸化物イオン','ナトリウムイオンだけ'],answer:0,ex:'酸性の水溶液には水素イオンH⁺が存在します。'},
+{grade:'j3',subject:'理科',unit:'運動',q:'速さが一定の直線運動を何という？',choices:['等速直線運動','自由落下だけ','円運動'],answer:0,ex:'一直線上を一定の速さで進む運動を等速直線運動といいます。'},
+{grade:'j3',subject:'社会',unit:'公民',q:'法律を制定する国の機関は？',choices:['国会','内閣','最高裁判所'],answer:0,ex:'国会は国権の最高機関であり、国の唯一の立法機関です。'},
+{grade:'j3',subject:'社会',unit:'経済',q:'需要が増え、供給が変わらないとき、価格は一般に？',choices:['上がりやすい','下がりやすい','必ず0円になる'],answer:0,ex:'需要が供給に対して増えると、一般に価格は上がりやすくなります。'},
+{grade:'j3',subject:'社会',unit:'国際社会',q:'国際連合の本部がある都市は？',choices:['ニューヨーク','東京','ロンドン','シドニー'],answer:0,ex:'国際連合本部はアメリカ合衆国のニューヨークにあります。'},
+{grade:'j3',subject:'英語',unit:'現在完了',q:'I have lived here ___ three years. に入る語は？',choices:['since','for','at','by'],answer:1,ex:'期間「3年間」を表すのでforを使います。'},
+{grade:'j3',subject:'英語',unit:'受動態',q:'This book was written by Soseki. の意味は？',choices:['この本は漱石によって書かれた','漱石はこの本を読む','この本が漱石を書いた'],answer:0,ex:'be動詞 + 過去分詞は受動態で、「～される」を表します。'},
+{grade:'j3',subject:'英語',unit:'関係代名詞',q:'The boy ___ is running is my brother. に入る語は？',choices:['who','where','when','what'],answer:0,ex:'先行詞が人で、後ろの文の主語になるためwhoを使います。'}
+];
+
+const GRADES={g4:'小学4年',g5:'小学5年',g6:'小学6年',j1:'中学1年',j2:'中学2年',j3:'中学3年'};
+const TERMS={1:'1学期',2:'2学期',3:'3学期'};
+const GRADE_TERMS={};
+Object.entries(GRADES).forEach(([g,label])=>{
+ [1,2,3].forEach(t=>{
+  GRADE_TERMS[`${g}_t${t}`]={label:`${label}${t}学期`,html:`<span class="grade-label">${label}<br>${t}学期</span>`,difficulty:'normal'};
+  GRADE_TERMS[`${g}_t${t}_adv`]={label:`${label}${t}学期(応用)`,html:`<span class="grade-label">${label}<br>${t}学期<br>(応用)</span>`,difficulty:'advanced'};
+ });
+});
+// 初期問題は登録順に1・2・3学期へ割り当て、通常問題として扱います。
+const termCounters={};
+QUESTIONS.forEach(q=>{if(!q.term){const k=`${q.grade}__${q.subject}`;termCounters[k]=(termCounters[k]||0)+1;q.term=((termCounters[k]-1)%3)+1;}q.difficulty=q.difficulty||'normal';});
+
+/* =========================================================
+   カリキュラム拡張問題
+   数値を毎回変える生成問題と、各教科の主要単元問題を追加します。
+   「(応用)」は公立学校の標準範囲を土台に、複数段階の思考を要する問題です。
+   ========================================================= */
+function addQuestion(grade,term,subject,unit,q,choices,answer,ex,difficulty='normal',generatedMath=false){
+ QUESTIONS.push({grade,term,subject,unit,q,choices,answer,ex,difficulty,generatedMath});
+}
+function makeChoices(correct,wrong){
+ const values=[String(correct),...wrong.map(String)].filter((v,i,a)=>a.indexOf(v)===i).slice(0,4);
+ while(values.length<4)values.push(String(Number(correct)+values.length+1));
+ const shuffled=values.sort(()=>Math.random()-.5);
+ return {choices:shuffled,answer:shuffled.indexOf(String(correct))};
+}
+function addCalc(grade,term,unit,text,correct,wrong,ex,difficulty='normal'){
+ const c=makeChoices(correct,wrong);addQuestion(grade,term,'算数・数学',unit,text,c.choices,c.answer,ex,difficulty,true);
+}
+function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+function buildMathQuestions(){
+ const grades=['g4','g5','g6','j1','j2','j3'];
+ for(const g of grades)for(let t=1;t<=3;t++)for(const diff of ['normal','advanced']){
+  const adv=diff==='advanced';
+  for(let i=0;i<24;i++){
+   const n=i+randInt(0,500);
+   if(g==='g4'){
+    const a=120+t*35+n*7,b=6+(n%7),c=3+(n%5);
+    if(!adv){
+     if(n%4===0)addCalc(g,t,'整数の計算',`${a}＋${b*13} は？`,a+b*13,[a+b*13+10,a+b*13-10,a+b*12],`位をそろえて足すと${a+b*13}です。`,diff);
+     else if(n%4===1)addCalc(g,t,'わり算',`${b*12}÷${b} は？`,12,[b,10,14],`${b*12}を${b}等分すると12です。`,diff);
+     else if(n%4===2)addCalc(g,t,'小数',`${(c/10).toFixed(1)}＋${(b/10).toFixed(1)} は？`,((c+b)/10).toFixed(1),[((c+b+1)/10).toFixed(1),((c+b-1)/10).toFixed(1),(c*b/10).toFixed(1)],'小数点をそろえて計算します。',diff);
+     else addCalc(g,t,'角度・図形',`三角形の2つの角が${40+n%20}°と${60+n%15}°です。残りの角は？`,180-(40+n%20)-(60+n%15),[90,100,120],'三角形の内角の和は180°です。',diff);
+    }else{
+     const total=(a+b*10)*c;
+     if(n%2===0)addCalc(g,t,'複合計算',`1箱${a+b}円の商品を${c}箱買い、${b*5}円引きされました。代金は？`,(a+b)*c-b*5,[(a+b)*c,(a+b)*(c-1),a+b*c-b*5],'先に箱数分を掛け、最後に値引きを引きます。',diff);
+     else addCalc(g,t,'規則性',`3、7、11、15…と増える数列の第${c+3}項は？`,3+4*(c+2),[3+4*(c+3),7+4*(c+2),4*(c+3)],'最初が3で、1項進むごとに4増えます。',diff);
+    }
+   }else if(g==='g5'){
+    const a=80+n*5,b=4+(n%8),c=2+(n%6);
+    if(!adv){
+     if(n%4===0)addCalc(g,t,'割合',`${a}の${c*10}%は？`,a*c/10,[a*c,a/c,a-c],`${a}×${c/10}で求めます。`,diff);
+     else if(n%4===1)addCalc(g,t,'分数',`${c}/8＋${8-c}/8 は？`,1,[0,2,8],'分母が同じなので分子を足し、8/8=1です。',diff);
+     else if(n%4===2)addCalc(g,t,'体積',`縦${b}cm、横${c}cm、高さ${c+2}cmの直方体の体積は？`,b*c*(c+2),[b+c+c+2,b*c,b*(c+2)],'縦×横×高さで求めます。',diff);
+     else addCalc(g,t,'平均',`${a}, ${a+10}, ${a+20} の平均は？`,a+10,[a,a+15,a+20],'合計を個数3で割ります。',diff);
+    }else{
+     const price=500+n*20,rate=10+(n%4)*5;
+     if(n%2===0)addCalc(g,t,'割合の応用',`${price}円の商品を${rate}%引きで買います。支払額は？`,price*(100-rate)/100,[price*rate/100,price-rate,price*(100+rate)/100],'元の価格×（1−割引率）で求めます。',diff);
+     else addCalc(g,t,'速さの応用',`時速${b*10}kmで${c}時間進み、その後${b*5}km進みました。合計距離は？`,b*10*c+b*5,[b*10+c+b*5,b*10*c,b*15*c],'速さ×時間で最初の距離を求め、後の距離を足します。',diff);
+    }
+   }else if(g==='g6'){
+    const a=6+(n%8),b=3+(n%6),c=2+(n%5);
+    if(!adv){
+     if(n%4===0)addCalc(g,t,'比',`比 ${a*2}:${b*2} を簡単にすると？`,`${a}:${b}`,[`${a*2}:${b}`,`${a}:${b*2}`,`${b}:${a}`],'両方を2で割ります。',diff);
+     else if(n%4===1)addCalc(g,t,'速さ',`${a*20}kmを${c}時間で進む速さは？`,a*20/c,[a*20*c,a*20-c,a*20+c],'速さ＝道のり÷時間です。',diff);
+     else if(n%4===2)addCalc(g,t,'円',`半径${a}cmの円周（円周率3.14）は？`,(2*a*3.14).toFixed(2),[(a*3.14).toFixed(2),(a*a*3.14).toFixed(2),(2*a+3.14).toFixed(2)],'円周＝直径×円周率です。',diff);
+     else addCalc(g,t,'分数',`${a}/${a*b} を約分すると？`,`1/${b}`,[`${a}/${b}`,`${b}/${a}`,`1/${a}`],`分子・分母を${a}で割ります。`,diff);
+    }else{
+     if(n%2===0)addCalc(g,t,'比と割合の応用',`男子と女子の人数比が${a}:${b}で、合計${(a+b)*c}人です。男子は？`,a*c,[b*c,(a+b)*c,c],'全体を比の合計で分けます。',diff);
+     else addCalc(g,t,'図形の応用',`半径${a}cmの円の面積から、半径${b}cmの円の面積を引くと？（円周率3.14）`,((a*a-b*b)*3.14).toFixed(2),[(a-b)*3.14,(a*a+b*b)*3.14,(a-b)*(a-b)*3.14],'それぞれの円の面積を求めて引きます。',diff);
+    }
+   }else if(g==='j1'){
+    const a=2+(n%9),b=3+(n%7),c=1+(n%5);
+    if(!adv){
+     if(n%4===0)addCalc(g,t,'正負の数',`${-a}＋${b} は？`,-a+b,[-a-b,a+b,a-b],'符号に注意して数直線で考えます。',diff);
+     else if(n%4===1)addCalc(g,t,'文字式',`${a}x＋${b}x は？`,`${a+b}x`,[`${a*b}x`,`${a+b}x²`,`${a-b}x`],'同類項の係数を足します。',diff);
+     else if(n%4===2)addCalc(g,t,'方程式',`${a}x=${a*b} のときxは？`,b,[a,a*b,b-a],'両辺を係数で割ります。',diff);
+     else addCalc(g,t,'比例',`y=${a}xで、x=${b}のときyは？`,a*b,[a+b,b/a,a-b],'式にxの値を代入します。',diff);
+    }else{
+     if(n%2===0)addCalc(g,t,'方程式の応用',`${a}個で${a*b}円の商品と、送料${c*100}円の合計は？`,a*b+c*100,[a*(b+c*100),a*b,c*100],'商品の合計に送料を足します。',diff);
+     else addCalc(g,t,'比例・反比例',`xy=${a*b}で、x=${a}のときyは？`,b,[a,a*b,a+b],'反比例では積xyが一定です。',diff);
+    }
+   }else if(g==='j2'){
+    const a=2+(n%6),b=1+(n%8),c=3+(n%5);
+    if(!adv){
+     if(n%4===0)addCalc(g,t,'連立方程式',`x+y=${a+b}、x−y=${a-b} の解のxは？`,a,[b,a+b,a-b],'2式を足して2xを求めます。',diff);
+     else if(n%4===1)addCalc(g,t,'一次関数',`y=${a}x+${b}の傾きは？`,a,[b,a+b,-a],'xの係数が傾きです。',diff);
+     else if(n%4===2)addCalc(g,t,'確率',`赤玉${a}個、白玉${b}個から1個取るとき赤の確率は？`,`${a}/${a+b}`,[`${b}/${a+b}`,`${a}/${b}`,`${a+b}/${a}`],'全体の個数を分母、赤玉の個数を分子にします。',diff);
+     else addCalc(g,t,'図形',`多角形の内角の和が${(c-2)*180}°です。何角形？`,c,[c+1,c-1,c+2],'n角形の内角の和は(n−2)×180°です。',diff);
+    }else{
+     if(n%2===0)addCalc(g,t,'一次関数の応用',`直線y=${a}x+${b}上でx=${c}の点のy座標は？`,a*c+b,[a+c+b,a*c,a+b],'xを代入します。',diff);
+     else addCalc(g,t,'連立方程式の文章題',`大人${a}人と子ども${b}人で計${a*500+b*300}円。大人1人500円、子ども1人300円のとき合計人数は？`,a+b,[a*b,a+b+1,a+b-1],'人数を足します。料金条件は検算に使えます。',diff);
+    }
+   }else{
+    const a=2+(n%7),b=1+(n%6),c=2+(n%5);
+    if(!adv){
+     if(n%4===0)addCalc(g,t,'平方根',`√${a*a} は？`,a,[a*a,2*a,a-1],'正の平方根を答えます。',diff);
+     else if(n%4===1)addCalc(g,t,'二次方程式',`x²=${b*b} の解は？`,`±${b}`,[`${b}`,`${-b}`,`${b*b}`],'正と負の両方が解です。',diff);
+     else if(n%4===2)addCalc(g,t,'相似',`相似比が${a}:${b}のとき、面積比は？`,`${a*a}:${b*b}`,[`${a}:${b}`,`${a*2}:${b*2}`,`${a*a*a}:${b*b*b}`],'面積比は相似比の2乗です。',diff);
+     else addCalc(g,t,'展開',`(x+${b})(x+${c})の定数項は？`,b*c,[b+c,b-c,b*b+c*c],'定数項どうしを掛けます。',diff);
+    }else{
+     if(n%2===0)addCalc(g,t,'二次関数の応用',`y=${a}x²でx=${c}のときyは？`,a*c*c,[a*c,a+c*c,a*a*c],'xを2乗して係数を掛けます。',diff);
+     else addCalc(g,t,'三平方の定理',`直角をはさむ2辺が${a*3}cmと${a*4}cmの直角三角形。斜辺は？`,a*5,[a*7,a*12,a*4],'3:4:5の直角三角形の比を使えます。',diff);
+    }
+  }
+ }
+}
+}
+
+const KNOWLEDGE_BANK={
+ '国語':[
+  ['漢字・語句','同音異義語は、読みが同じで意味や漢字が異なる語です。','同音異義語の説明として正しいものは？',['読みが同じで意味や漢字が異なる語','意味が同じで読みだけ異なる語','反対の意味をもつ語']],
+  ['文法','主語は「誰が・何が」、述語は「どうする・どんなだ・何だ」を表します。','主語と述語の説明として正しいものは？',['主語は誰が・何が、述語はどうする等','主語は文末だけ、述語は文頭だけ','どちらも必ず名詞']],
+  ['読解','指示語が指す内容は、前後の文脈から確認します。','「これ」「それ」が指す内容を探す方法は？',['前後の文脈を読む','漢字の画数を見る','行数だけ数える']],
+  ['作文','意見文では、主張・理由・具体例・結論を対応させます。','説得力のある意見文に必要なものは？',['主張を支える理由や具体例','長い題名だけ','難しい漢字だけ']],
+  ['古典・表現','比喩は、あるものを別のものにたとえて表す方法です。','比喩の説明として正しいものは？',['別のものにたとえて表す','同じ文を必ず3回書く','事実をすべて省略する']]
+ ],
+ '理科':[
+  ['観察・実験','実験では変える条件を1つにし、ほかの条件をそろえて比べます。','公平な実験にする方法は？',['変える条件以外をそろえる','全部の条件を同時に変える','結果を先に決める']],
+  ['生命','植物は光合成で二酸化炭素と水から養分をつくり、酸素を出します。','光合成について正しいものは？',['二酸化炭素を取り入れ酸素を出す','酸素だけを取り入れる','光がなくても必ず同じ速さ']],
+  ['物質','物質は状態が変化しても、物質そのものが同じなら質量が保たれる場合があります。','状態変化の説明として適切なのは？',['物質自体が同じなら質量は基本的に保たれる','必ず別の元素になる','質量は必ず0になる']],
+  ['エネルギー','電流・電圧・抵抗には関係があり、中学校ではオームの法則で表します。','電気の学習で関係を調べる量は？',['電流・電圧・抵抗','色・においだけ','年月日だけ']],
+  ['地球','天気や地層、天体は、観測記録を時間や場所と対応させて考えます。','地球分野の観察で重要なことは？',['時間や場所と対応させて記録する','一度だけ見て決める','記録を残さない']]
+ ],
+ '社会':[
+  ['地理','地図では方位・縮尺・地図記号・等高線などを使って地域を読み取ります。','地図を読むときに使うものは？',['方位や縮尺、地図記号','文末表現だけ','音の高さだけ']],
+  ['歴史','歴史は出来事の前後関係、原因、結果を関連付けて考えます。','歴史を理解する方法として適切なのは？',['原因と結果や時代の流れを考える','年号だけ無関係に暗記する','未来の出来事として扱う']],
+  ['公民','日本では国会・内閣・裁判所が立法・行政・司法を分担します。','三権分立の組合せは？',['国会・内閣・裁判所','学校・病院・会社','都道府県・市・町だけ']],
+  ['産業','生産・流通・消費は互いにつながり、社会や生活を支えます。','産業のつながりとして適切なのは？',['生産した物が流通を通じ消費者へ届く','生産と消費は無関係','流通は物を動かさない']],
+  ['資料活用','統計やグラフは、出典・単位・期間・比較対象を確かめて読みます。','資料を読むときに確認するものは？',['出典・単位・期間','文字の色だけ','ページ番号だけ']]
+ ],
+ '英語':[
+  ['語順','英語の基本語順は、主語の後に動詞を置きます。','英語の基本語順として正しいものは？',['主語＋動詞','動詞を必ず最後','目的語だけ']],
+  ['疑問文','疑問詞には who, what, when, where, why, how などがあります。','場所をたずねる疑問詞は？',['where','when','who']],
+  ['時制','現在・過去・未来など、時に合わせて動詞の形や表現を変えます。','昨日のことを表すときに重要なのは？',['過去を表す動詞の形や語句','必ず現在形だけ','主語を消す']],
+  ['助動詞','canは能力や可能、mustは必要・義務などを表します。','canの代表的な意味は？',['～できる','～だった','～されるだけ']],
+  ['読解','英文読解では代名詞が何を指すか、接続語が何を結ぶかを確認します。','英文を読む手がかりは？',['代名詞や接続語の関係','文字数だけ','大文字の数だけ']]
+ ]
+};
+function buildKnowledgeQuestions(){
+ const grades=['g4','g5','g6','j1','j2','j3'];
+ for(const g of grades)for(let t=1;t<=3;t++)for(const subject of Object.keys(KNOWLEDGE_BANK))for(const diff of ['normal','advanced']){
+  const bank=KNOWLEDGE_BANK[subject];
+  for(let r=0;r<3;r++)for(const [unit,ex,q,choices] of bank){
+   const arr=[...choices];const correct=arr[0];arr.sort(()=>Math.random()-.5);
+   addQuestion(g,t,subject,unit,(diff==='advanced'?'【応用】':'')+q,arr,arr.indexOf(correct),ex,diff);
+  }
+ }
+}
+buildMathQuestions();
+buildKnowledgeQuestions();
+function refreshGeneratedMathQuestions(){
+ for(let i=QUESTIONS.length-1;i>=0;i--)if(QUESTIONS[i].generatedMath)QUESTIONS.splice(i,1);
+ buildMathQuestions();
+}
+const SUBJECTS=['国語','算数・数学','理科','社会','英語'];
+const STORAGE={scores:'studyAimScoresV1',settings:'studyAimSettingsV1'};
+const DEFAULT_SETTINGS={sensitivity:1,invertView:false,fireKey:'Space',centerKey:'KeyC',up:'KeyW',left:'KeyA',down:'KeyS',right:'KeyD'};
+let settings={...DEFAULT_SETTINGS};
+let game={active:false,questions:[],index:0,correct:0,shots:0,hits:0,missShots:0,startTime:0,elapsed:0,pausedTotal:0,pauseStarted:0,locked:false,cooldownUntil:0,targets:[],aimX:0,aimY:0,lastFrame:0,selectedGrades:[],selectedSubjects:[],yaw:0,pitch:0,playerX:0,playerY:0,playerZ:0,moveKeys:{},projectedDots:[],touchStart:null,touchMoved:false,pausedByMenu:false,settingsFromPause:false,suppressPauseOnUnlock:false};
+
+const $=id=>document.getElementById(id);
+const canvas=$('gameCanvas'),ctx=canvas.getContext('2d');
+let DPR=1, cw=0,ch=0;
+
+function init(){
+ $('gradeChecks').innerHTML=Object.entries(GRADE_TERMS).map(([k,v])=>`<label class="check-card"><input type="checkbox" value="${k}" ${k==='g4_t1'?'checked':''}>${v.html}</label>`).join('');
+ $('subjectChecks').innerHTML=SUBJECTS.map(s=>`<label class="check-card"><input type="checkbox" value="${s}" checked>${s}</label>`).join('');
+ loadSettings(); updateSettingsUI(); renderScores(); bindEvents(); resizeCanvas(); requestAnimationFrame(loop);
+}
+function bindEvents(){
+ $('startBtn').onclick=()=>startGame(false);
+ $('settingsBtn').onclick=()=>{game.settingsFromPause=false;$('settingsModal').classList.remove('hidden');};
+ $('closeSettings').onclick=closeSettingsModal; $('saveSettings').onclick=saveSettings;
+ $('resumeBtn').onclick=resumeGame;
+ $('pauseSettingsBtn').onclick=()=>{game.settingsFromPause=true;$('pauseModal').classList.add('hidden');$('settingsModal').classList.remove('hidden');};
+ $('pauseHomeBtn').onclick=()=>{if(confirm('現在のゲームを終了してホームに戻りますか？'))backToMenu();};
+ $('resetScoresBtn').onclick=()=>{if(confirm('すべてのハイスコアを削除しますか？')){localStorage.removeItem(STORAGE.scores);renderScores();}};
+ $('nextBtn').onclick=()=>{
+  if(game.pauseStarted){game.pausedTotal+=performance.now()-game.pauseStarted;game.pauseStarted=0;}
+  $('explainModal').classList.add('hidden'); showQuestion(); lockPointerForPlay();
+ };
+ $('retryBtn').onclick=()=>{ $('resultModal').classList.add('hidden'); startGame(true); };
+ $('menuBtn').onclick=backToMenu;
+
+ // PC：クリックでポインターロック、マウス移動で視点操作、クリックで発射
+ canvas.addEventListener('mousedown',e=>{
+  if(!game.active)return;
+  e.preventDefault();
+  if(canvas.requestPointerLock && document.pointerLockElement!==canvas) canvas.requestPointerLock();
+  fire();
+ });
+ document.addEventListener('pointerlockchange',()=>{
+  if(!game.active||!matchMedia('(pointer:fine)').matches)return;
+  if(document.pointerLockElement!==canvas&&game.pauseStarted===0&&!game.pausedByMenu&&$('explainModal').classList.contains('hidden')&&$('settingsModal').classList.contains('hidden')&&$('resultModal').classList.contains('hidden'))pauseGame();
+ });
+ document.addEventListener('mousemove',e=>{
+  if(!game.active || document.pointerLockElement!==canvas)return;
+  const speed=.0022*settings.sensitivity;
+  // 通常：右へ動かすと右を見る、上へ動かすと上を見る
+  const direction=settings.invertView?-1:1;
+  game.yaw+=e.movementX*speed*direction;
+  game.pitch=Math.max(-.62,Math.min(.62,game.pitch+e.movementY*speed*direction));
+ });
+
+ // スマホ：スワイプで視点移動、短いタップで発射
+ canvas.addEventListener('pointerdown',e=>{
+  if(e.pointerType==='mouse'||!game.active)return;
+  e.preventDefault();
+  canvas.setPointerCapture?.(e.pointerId);
+  game.touchStart={x:e.clientX,y:e.clientY,lastX:e.clientX,lastY:e.clientY,time:performance.now()};
+  game.touchMoved=false;
+ });
+ canvas.addEventListener('pointermove',e=>{
+  if(e.pointerType==='mouse'||!game.active||!game.touchStart)return;
+  e.preventDefault();
+  const dx=e.clientX-game.touchStart.lastX,dy=e.clientY-game.touchStart.lastY;
+  if(Math.hypot(e.clientX-game.touchStart.x,e.clientY-game.touchStart.y)>8)game.touchMoved=true;
+  const speed=.006*settings.sensitivity;
+  // 通常：右スワイプで右、上スワイプで上を見る
+  const direction=settings.invertView?-1:1;
+  game.yaw+=dx*speed*direction;
+  game.pitch=Math.max(-.62,Math.min(.62,game.pitch+dy*speed*direction));
+  game.touchStart.lastX=e.clientX;game.touchStart.lastY=e.clientY;
+ });
+ canvas.addEventListener('pointerup',e=>{
+  if(e.pointerType==='mouse'||!game.touchStart)return;
+  e.preventDefault();
+  const duration=performance.now()-game.touchStart.time;
+  if(!game.touchMoved&&duration<350)fire();
+  game.touchStart=null;
+ });
+ canvas.addEventListener('pointercancel',()=>game.touchStart=null);
+
+ $('fireBtn').addEventListener('pointerdown',e=>{e.preventDefault();fire();});
+ $('centerBtn').onclick=centerAim;
+ document.querySelectorAll('.aim').forEach(btn=>{
+  let timer; const move=()=>moveAim(Number(btn.dataset.dx),Number(btn.dataset.dy));
+  btn.addEventListener('pointerdown',e=>{e.preventDefault();move();timer=setInterval(move,45)});
+  ['pointerup','pointercancel','pointerleave'].forEach(ev=>btn.addEventListener(ev,()=>clearInterval(timer)));
+ });
+ window.addEventListener('keydown',e=>{
+  if(e.code==='Escape'&&game.active&&!game.pauseStarted&&!game.locked){e.preventDefault();pauseGame();return;}
+  if(!game.active||game.pausedByMenu||!$('explainModal').classList.contains('hidden')||!$('settingsModal').classList.contains('hidden'))return;
+  if(['KeyW','KeyA','KeyS','KeyD'].includes(e.code)){game.moveKeys[e.code]=true;e.preventDefault();}
+  if(e.code===settings.fireKey){e.preventDefault();fire();}
+  if(e.code===settings.centerKey){e.preventDefault();centerAim();}
+  const step=.035*settings.sensitivity;
+  const direction=settings.invertView?-1:1;
+  if(e.code==='ArrowUp')game.pitch-=step*direction;
+  if(e.code==='ArrowDown')game.pitch+=step*direction;
+  if(e.code==='ArrowLeft')game.yaw-=step*direction;
+  if(e.code==='ArrowRight')game.yaw+=step*direction;
+  game.pitch=Math.max(-.62,Math.min(.62,game.pitch));
+ });
+ window.addEventListener('keyup',e=>{if(['KeyW','KeyA','KeyS','KeyD'].includes(e.code))game.moveKeys[e.code]=false;});
+ window.addEventListener('blur',()=>game.moveKeys={});
+ window.addEventListener('resize',resizeCanvas);
+ setupKeyBinder('bindFire','fireKey'); setupKeyBinder('bindCenter','centerKey');
+}
+function setupKeyBinder(buttonId,prop){
+ const b=$(buttonId); b.onclick=()=>{b.textContent='キーを押してください…';const h=e=>{e.preventDefault();settings[prop]=e.code;b.textContent=keyName(e.code);window.removeEventListener('keydown',h,true)};window.addEventListener('keydown',h,true)};
+}
+function keyName(code){return code.replace('Key','').replace('Digit','').replace('Space','スペース').replace('Arrow','矢印');}
+function loadSettings(){try{settings={...DEFAULT_SETTINGS,...JSON.parse(localStorage.getItem(STORAGE.settings)||'{}')}}catch{settings={...DEFAULT_SETTINGS}}}
+function updateSettingsUI(){
+ $('sensitivity').value=settings.sensitivity;$('sensitivityValue').textContent=` ${Number(settings.sensitivity).toFixed(2)}`;
+ $('invertView').checked=Boolean(settings.invertView);
+ $('sensitivity').oninput=()=>$('sensitivityValue').textContent=` ${Number($('sensitivity').value).toFixed(2)}`;
+ $('bindFire').textContent=keyName(settings.fireKey);$('bindCenter').textContent=keyName(settings.centerKey);
+ $('keyUpLabel').textContent='WASD：移動';$('keyLeftLabel').textContent='矢印：視点';$('keyDownLabel').textContent='マウス：視点';$('keyRightLabel').textContent='クリック：発射';
+}
+function saveSettings(){settings.sensitivity=Number($('sensitivity').value);settings.invertView=$('invertView').checked;localStorage.setItem(STORAGE.settings,JSON.stringify(settings));updateSettingsUI();$('settingsModal').classList.add('hidden');if(game.settingsFromPause){$('pauseModal').classList.remove('hidden');game.settingsFromPause=false;}}
+function closeSettingsModal(){$('settingsModal').classList.add('hidden');if(game.settingsFromPause){$('pauseModal').classList.remove('hidden');game.settingsFromPause=false;}}
+function pauseGame(){if(!game.active||game.pausedByMenu||game.pauseStarted)return;game.pausedByMenu=true;game.pauseStarted=performance.now();releasePointerForUi();$('pauseModal').classList.remove('hidden');}
+function resumeGame(){if(!game.pausedByMenu)return;if(game.pauseStarted){game.pausedTotal+=performance.now()-game.pauseStarted;game.pauseStarted=0;}game.pausedByMenu=false;$('pauseModal').classList.add('hidden');lockPointerForPlay();}
+function selected(selector){return [...document.querySelectorAll(selector+':checked')].map(x=>x.value)}
+function lockPointerForPlay(){
+ if(!game.active || !matchMedia('(pointer:fine)').matches)return;
+ if(canvas.requestPointerLock && document.pointerLockElement!==canvas){
+  try{canvas.requestPointerLock();}catch(e){}
+ }
+}
+function releasePointerForUi(){
+ if(document.pointerLockElement===canvas && document.exitPointerLock){
+  try{document.exitPointerLock();}catch(e){}
+ }
+}
+function startGame(retry=false){
+ refreshGeneratedMathQuestions();
+ if(!retry){game.selectedGrades=selected('#gradeChecks input');game.selectedSubjects=selected('#subjectChecks input');}
+ if(!game.selectedGrades.length)return alert('学年を1つ以上選んでください。');
+ if(!game.selectedSubjects.length)return alert('教科を1つ以上選んでください。');
+ let pool=QUESTIONS.filter(q=>game.selectedGrades.some(key=>{const advanced=key.endsWith('_adv');const base=advanced?key.slice(0,-4):key;return base===`${q.grade}_t${q.term}`&&(advanced?q.difficulty==='advanced':q.difficulty!=='advanced');})&&game.selectedSubjects.includes(q.subject));
+ if(!pool.length)return alert('該当する問題がありません。学年または教科を変更してください。');
+ game.questions=sampleQuestions(pool,15);game.index=0;game.correct=0;game.shots=0;game.hits=0;game.missShots=0;game.locked=false;game.cooldownUntil=0;game.active=true;game.pausedByMenu=false;game.playerX=0;game.playerY=0;game.playerZ=0;game.moveKeys={};game.startTime=performance.now();game.elapsed=0;game.pausedTotal=0;game.pauseStarted=0;$('pauseModal').classList.add('hidden');
+ $('menuScreen').classList.add('hidden');$('gameScreen').classList.remove('hidden');resizeCanvas();centerAim();showQuestion();
+ // スタートボタンのクリック操作をそのまま利用し、開始直後にFPS視点へ入る
+ lockPointerForPlay();
+}
+function sampleQuestions(pool,n){
+ const result=[];let last=null;
+ while(result.length<n){
+  const round=[...pool].sort(()=>Math.random()-.5);
+  if(last&&round.length>1&&round[0]===last)[round[0],round[1]]=[round[1],round[0]];
+  for(const q of round){result.push(q);last=q;if(result.length===n)break;}
+ }
+ return result;
+}
+function showQuestion(){
+ game.locked=false;const q=game.questions[game.index];$('qNumber').textContent=game.index+1;$('correctCount').textContent=game.correct;$('questionText').textContent='正面の3D問題ボードを確認';$('questionMeta').textContent=`${GRADES[q.grade]} ${TERMS[q.term]} ｜ ${q.subject} ｜ ${q.unit}`;
+ createTargets(q.choices); updateAccuracy();
+}
+function panelPoint(panel,lx,ly,lz=0){
+ // パネル固有のローカル座標を、本当の3D世界座標へ変換
+ const c=Math.cos(panel.rotY||0),s=Math.sin(panel.rotY||0);
+ return {x:panel.x+lx*c+lz*s,y:panel.y+ly,z:panel.z-lx*s+lz*c};
+}
+function createTargets(choices){
+ // 各回答パネルは3D空間内に実在し、左右は少し中央向きに設置する。
+ const slots=[
+  {x:-4.25,y: 1.65,z:12.3,rotY:-.20},
+  {x: 4.25,y: 1.65,z:12.3,rotY: .20},
+  {x:-4.25,y:-2.05,z:13.2,rotY:-.20},
+  {x: 4.25,y:-2.05,z:13.2,rotY: .20}
+ ];
+ const shuffled=[...slots].sort(()=>Math.random()-.5);
+ game.targets=choices.map((text,i)=>{
+  const base=shuffled[i];
+  const target={text,index:i,...base,w:4.65,h:3.45,dots:[],completed:false};
+  const positions=[[-1.35,.45],[1.35,.45],[-1.35,-.82],[1.35,-.82]].sort(()=>Math.random()-.5);
+  for(const [ox,oy] of positions){
+   const localX=ox+(Math.random()-.5)*.25,localY=oy+(Math.random()-.5)*.18;
+   const world=panelPoint(target,localX,localY,-.06);
+   target.dots.push({...world,localX,localY,hit:false,flash:0});
+  }
+  return target;
+ });
+ game.projectedDots=[];
+}
+function fire(){
+ if(!game.active||game.locked||game.pausedByMenu||game.pauseStarted)return;const now=performance.now();if(now<game.cooldownUntil)return;
+ game.shots++;let best=null;
+ const cx=cw/2,cy=ch/2;
+ for(const p of game.projectedDots){
+  if(p.dot.hit||p.target.completed||p.behind)continue;
+  const d=Math.hypot(p.sx-cx,p.sy-cy);
+  if(d<=p.radius*1.15&&(!best||d<best.d))best={...p,d};
+ }
+ if(best){
+  game.hits++;best.dot.hit=true;best.dot.flash=1;
+  const remaining=best.target.dots.filter(d=>!d.hit).length;
+  if(remaining===0){
+   best.target.completed=true;showToast('4つ命中！ 判定します','good');setTimeout(()=>answerTarget(best.target.index),220);
+  }else showToast(`命中！ あと${remaining}個`,'good');
+ }else{
+  game.missShots++;game.cooldownUntil=now+750;showToast('MISS - 0.75秒クールタイム','bad');
+ }
+ updateAccuracy();
+}
+function answerTarget(index){
+ if(game.locked)return;game.locked=true;const q=game.questions[game.index];
+ if(index===q.answer){game.correct++;$('correctCount').textContent=game.correct;showToast(`正解！ ${q.ex}`,'good');setTimeout(nextQuestion,650);}else{
+  showToast('不正解 - 解説を読もう','bad');setTimeout(()=>{game.pauseStarted=performance.now();releasePointerForUi();$('explainTitle').textContent=`不正解　正解：${q.choices[q.answer]}`;$('explainText').textContent=q.ex;$('explainModal').classList.remove('hidden');},320);
+ }
+}
+function nextQuestion(){if(!game.active)return;game.index++;if(game.index>=15){finishGame();return;}showQuestion();}
+function finishGame(){
+ game.active=false;game.elapsed=performance.now()-game.startTime-game.pausedTotal-(game.pauseStarted?performance.now()-game.pauseStarted:0);const key=scoreKey();const scores=getScores();const old=scores[key];const isRecord=!old||game.elapsed<old.time;
+ if(isRecord)scores[key]={time:game.elapsed,date:new Date().toLocaleDateString('ja-JP'),correct:game.correct,accuracy:accuracy()};localStorage.setItem(STORAGE.scores,JSON.stringify(scores));
+ $('resultTime').textContent=formatTime(game.elapsed);$('resultCorrect').textContent=`${game.correct}/15`;$('resultAccuracy').textContent=`${accuracy()}%`;$('resultMisses').textContent=game.missShots;
+ $('recordMessage').textContent=isRecord?'🏆 新記録！ローカルストレージに保存しました。':`ベスト：${formatTime(old.time)}`;$('resultModal').classList.remove('hidden');
+}
+function scoreKey(){return [...game.selectedGrades].sort().join('+')+'__'+[...game.selectedSubjects].sort().join('+');}
+function scoreLabel(key){const [g,s]=key.split('__');return `${g.split('+').map(x=>GRADE_TERMS[x]?.label||GRADES[x]||x).join('＋')} / ${s.split('+').join('・')}`}
+function getScores(){try{return JSON.parse(localStorage.getItem(STORAGE.scores)||'{}')}catch{return {}}}
+function renderScores(){const entries=Object.entries(getScores()).sort((a,b)=>a[1].time-b[1].time);$('scoreList').innerHTML=entries.length?entries.map(([k,v])=>`<div class="score-row"><span>${scoreLabel(k)}</span><b>${formatTime(v.time)}</b></div>`).join(''):'<div class="small">まだ記録がありません。</div>'}
+function backToMenu(){game.active=false;game.pausedByMenu=false;game.pauseStarted=0;releasePointerForUi();$('pauseModal').classList.add('hidden');$('settingsModal').classList.add('hidden');$('explainModal').classList.add('hidden');$('resultModal').classList.add('hidden');$('gameScreen').classList.add('hidden');$('menuScreen').classList.remove('hidden');renderScores();}
+function accuracy(){return game.shots?Math.round(game.hits/game.shots*100):100}
+function updateAccuracy(){$('accuracyText').textContent=accuracy()+'%'}
+function formatTime(ms){const m=Math.floor(ms/60000),s=Math.floor(ms/1000)%60,x=Math.floor(ms%1000);return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(x).padStart(3,'0')}`}
+function showToast(text,type){const el=$('statusToast');el.textContent=text;el.style.borderColor=type==='good'?'#56e98b':'#ff6476';el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),type==='good'?1700:1400)}
+function resizeCanvas(){const r=canvas.getBoundingClientRect();DPR=Math.min(devicePixelRatio||1,2);canvas.width=Math.max(1,Math.floor(r.width*DPR));canvas.height=Math.max(1,Math.floor(r.height*DPR));cw=canvas.width;ch=canvas.height;if(!game.aimX){game.aimX=cw/2;game.aimY=ch/2}updateCrosshair();}
+function centerAim(){game.yaw=0;game.pitch=0;game.aimX=cw/2;game.aimY=ch/2;updateCrosshair()}
+function moveAim(dx,dy){const step=.045*settings.sensitivity;const direction=settings.invertView?-1:1;game.yaw+=dx*step*direction;game.pitch=Math.max(-.62,Math.min(.62,game.pitch+dy*step*direction));}
+function updateCrosshair(){$('crosshair').style.left='50%';$('crosshair').style.top='50%'}
+function loop(now){
+ const dt=Math.min(.04,(now-game.lastFrame)/1000||0);game.lastFrame=now;updatePlayerMovement(dt);drawArena(now,dt);
+ if(game.active){const pausedNow=game.pauseStarted?now-game.pauseStarted:0;$('timerText').textContent=formatTime(now-game.startTime-game.pausedTotal-pausedNow);updateCooldown(now)}requestAnimationFrame(loop);
+}
+
+function updatePlayerMovement(dt){
+ if(!game.active||game.pausedByMenu||game.pauseStarted||game.locked)return;
+ let forward=(game.moveKeys.KeyW?1:0)-(game.moveKeys.KeyS?1:0);
+ let strafe=(game.moveKeys.KeyD?1:0)-(game.moveKeys.KeyA?1:0);
+ if(!forward&&!strafe)return;
+ const length=Math.hypot(forward,strafe)||1;forward/=length;strafe/=length;
+ const speed=4.2;
+ const sin=Math.sin(game.yaw),cos=Math.cos(game.yaw);
+ game.playerX+=(sin*forward+cos*strafe)*speed*dt;
+ game.playerZ+=(cos*forward-sin*strafe)*speed*dt;
+ // 回答パネルへ入り込んだり、部屋の外へ出たりしないよう制限
+ game.playerX=Math.max(-9.5,Math.min(9.5,game.playerX));
+ game.playerZ=Math.max(-3,Math.min(8.2,game.playerZ));
+}
+function updateCooldown(now){const remain=Math.max(0,game.cooldownUntil-now);const active=remain>0;$('cooldown').classList.toggle('show',active);$('fireBtn').classList.toggle('cool',active);$('cooldownFill').style.width=(active?(1-remain/750)*100:0)+'%'}
+function rotateToCamera(x,y,z){
+ // プレイヤー位置を原点として、世界座標をカメラ座標へ変換
+ x-=game.playerX;y-=game.playerY;z-=game.playerZ;
+ const cy=Math.cos(game.yaw),sy=Math.sin(game.yaw);
+ let x1=cy*x-sy*z,z1=sy*x+cy*z;
+ const cp=Math.cos(game.pitch),sp=Math.sin(game.pitch);
+ let y1=cp*y+sp*z1,z2=-sp*y+cp*z1;
+ return {x:x1,y:y1,z:z2};
+}
+function projectPoint(x,y,z){
+ const p=rotateToCamera(x,y,z);if(p.z<=.15)return null;
+ const f=Math.min(cw,ch)*.92;
+ return {sx:cw/2+p.x/p.z*f,sy:ch/2-p.y/p.z*f,scale:f/p.z,z:p.z};
+}
+function drawWorldLine(a,b,color,width=1){
+ const pa=projectPoint(a.x,a.y,a.z),pb=projectPoint(b.x,b.y,b.z);if(!pa||!pb)return;
+ ctx.strokeStyle=color;ctx.lineWidth=width*DPR;ctx.beginPath();ctx.moveTo(pa.sx,pa.sy);ctx.lineTo(pb.sx,pb.sy);ctx.stroke();
+}
+function projectPanelCorners(panel){
+ const hw=panel.w/2,hh=panel.h/2;
+ return [panelPoint(panel,-hw, hh),panelPoint(panel, hw, hh),panelPoint(panel, hw,-hh),panelPoint(panel,-hw,-hh)]
+  .map(p=>projectPoint(p.x,p.y,p.z));
+}
+function drawWorldPanel(panel,fill,stroke){
+ const pts=projectPanelCorners(panel);if(pts.some(p=>!p))return false;
+ ctx.beginPath();ctx.moveTo(pts[0].sx,pts[0].sy);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].sx,pts[i].sy);ctx.closePath();
+ ctx.fillStyle=fill;ctx.fill();ctx.lineWidth=2*DPR;ctx.strokeStyle=stroke;ctx.stroke();
+ return true;
+}
+function drawWorldText(text,world,maxWorldWidth,fontWorldSize,color='#eefaff',weight=800){
+ const p=projectPoint(world.x,world.y,world.z);if(!p)return;
+ const fontSize=Math.max(9*DPR,fontWorldSize*p.scale);
+ ctx.font=`${weight} ${fontSize}px system-ui`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=color;
+ const maxWidth=Math.max(40*DPR,maxWorldWidth*p.scale);
+ const lines=measureWrappedLines(ctx,String(text),maxWidth);const lh=fontSize*1.08;
+ lines.forEach((line,i)=>ctx.fillText(line,p.sx,p.sy+(i-(lines.length-1)/2)*lh));
+}
+function drawTextOnPanel3D(text,panel,maxCharsPerLine=18,fontWorldSize=.34,color='#fff7d1',weight=900,localYOffset=0){
+ // 文字ごとにパネル面上の3D座標へ置く。視点を振ると文字も枠と同じ遠近・傾きで動く。
+ const chars=[...String(text)];
+ const lines=[];
+ for(let i=0;i<chars.length;i+=maxCharsPerLine)lines.push(chars.slice(i,i+maxCharsPerLine));
+ const lineGap=fontWorldSize*1.45;
+ const charGap=fontWorldSize*1.02;
+ lines.forEach((line,li)=>{
+  const lineWidth=(line.length-1)*charGap;
+  line.forEach((chh,ci)=>{
+   const localX=-lineWidth/2+ci*charGap;
+   const localY=localYOffset+(lines.length-1)*lineGap/2-li*lineGap;
+   const wp=panelPoint(panel,localX,localY,-.045);
+   const pp=projectPoint(wp.x,wp.y,wp.z);if(!pp)return;
+   const fontSize=Math.max(8*DPR,fontWorldSize*pp.scale);
+   ctx.font=`${weight} ${fontSize}px system-ui`;
+   ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=color;
+   ctx.fillText(chh,pp.sx,pp.sy);
+  });
+ });
+}
+function drawArena(now,dt){
+ ctx.clearRect(0,0,cw,ch);
+ const sky=ctx.createLinearGradient(0,0,0,ch);sky.addColorStop(0,'#173451');sky.addColorStop(.52,'#091725');sky.addColorStop(1,'#02060a');ctx.fillStyle=sky;ctx.fillRect(0,0,cw,ch);
+ if(!game.active&&$('gameScreen').classList.contains('hidden'))return;
+ const q=game.questions[game.index];if(!q)return;
+
+ // 3D訓練ルーム：床・天井・側壁のグリッド
+ for(let z=2;z<=28;z+=2){
+  drawWorldLine({x:-12,y:-5,z},{x:12,y:-5,z},'#21435e',.9);
+  drawWorldLine({x:-12,y:5,z},{x:12,y:5,z},'#17334a',.7);
+ }
+ for(let x=-12;x<=12;x+=2){
+  drawWorldLine({x,y:-5,z:2},{x,y:-5,z:28},'#21435e',.9);
+  drawWorldLine({x,y:5,z:2},{x,y:5,z:28},'#17334a',.7);
+ }
+ for(let z=2;z<=28;z+=3){
+  drawWorldLine({x:-12,y:-5,z},{x:-12,y:5,z},'#1d3b54',.8);
+  drawWorldLine({x:12,y:-5,z},{x:12,y:5,z},'#1d3b54',.8);
+ }
+ drawWorldLine({x:-12,y:-5,z:28},{x:12,y:-5,z:28},'#46718d',1.2);
+ drawWorldLine({x:-12,y:5,z:28},{x:12,y:5,z:28},'#46718d',1.2);
+
+ game.projectedDots=[];
+
+ // 問題文も3D空間上のボードとして配置
+ const questionPanel={x:0,y:4.15,z:12.8,rotY:0,w:10.4,h:1.25};
+ ctx.save();ctx.globalAlpha=.96;
+ if(drawWorldPanel(questionPanel,'#0a1b29ee','#ffd45a')){
+  drawTextOnPanel3D(q.q,questionPanel,18,.34,'#fff7d1',900);
+ }
+ ctx.restore();
+
+ for(const t of game.targets){
+  const center=projectPoint(t.x,t.y,t.z);if(!center)continue;
+  ctx.save();
+  ctx.globalAlpha=Math.max(.28,Math.min(1,1.75-center.z/31));
+  if(!drawWorldPanel(t,t.completed?'#123c2ddd':'#07131ddd',t.completed?'#56e98b':'#3cd9ff')){ctx.restore();continue;}
+
+  // 回答文字もパネル面上の3D位置に固定
+  drawTextOnPanel3D(t.text,t,16,.30,'#eefaff',850,1.18);
+
+  for(const dot of t.dots){
+   const p=projectPoint(dot.x,dot.y,dot.z);if(!p)continue;
+   dot.flash=Math.max(0,dot.flash-dt*5);
+   const radius=Math.max(4.5*DPR,.145*p.scale);
+   game.projectedDots.push({target:t,dot,sx:p.sx,sy:p.sy,radius,behind:false});
+   ctx.shadowColor=dot.hit?'#56e98b':'#35d6ff';ctx.shadowBlur=dot.hit?10*DPR:8*DPR;
+   ctx.beginPath();ctx.arc(p.sx,p.sy,radius,0,Math.PI*2);ctx.fillStyle=dot.hit?'#173526':'#c52f45';ctx.fill();ctx.lineWidth=1.4*DPR;ctx.strokeStyle='#fff';ctx.stroke();
+   if(dot.hit){ctx.font=`900 ${Math.max(9*DPR,radius*1.45)}px system-ui`;ctx.fillStyle='#56e98b';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('✓',p.sx,p.sy+.5*DPR);}
+   else{ctx.beginPath();ctx.arc(p.sx,p.sy,radius*.55,0,Math.PI*2);ctx.fillStyle='#f4f7fa';ctx.fill();ctx.beginPath();ctx.arc(p.sx,p.sy,radius*.22,0,Math.PI*2);ctx.fillStyle='#d42840';ctx.fill();}
+  }
+  ctx.restore();
+ }
+ // FPSらしい照準周辺の簡易銃身
+ ctx.save();ctx.globalAlpha=.75;ctx.fillStyle='#101820';ctx.beginPath();ctx.moveTo(cw*.43,ch);ctx.lineTo(cw*.47,ch*.84);ctx.lineTo(cw*.53,ch*.84);ctx.lineTo(cw*.57,ch);ctx.closePath();ctx.fill();ctx.restore();
+ ctx.font=`700 ${12*DPR}px system-ui`;ctx.textAlign='right';ctx.fillStyle=performance.now()<game.cooldownUntil?'#ff6476':'#56e98b';ctx.fillText(performance.now()<game.cooldownUntil?'RELOADING...':'READY',cw-14*DPR,ch-14*DPR);
+ if(document.pointerLockElement!==canvas && matchMedia('(pointer:fine)').matches){ctx.textAlign='center';ctx.fillStyle='#d9f5ff';ctx.font=`700 ${13*DPR}px system-ui`;ctx.fillText('クリックで視点操作を開始',cw/2,ch-18*DPR);}
+}
+function measureWrappedLines(c,text,maxWidth){const chars=[...String(text)];let lines=[''];for(const chh of chars){const test=lines[lines.length-1]+chh;if(c.measureText(test).width>maxWidth&&lines[lines.length-1])lines.push(chh);else lines[lines.length-1]=test}return lines;}
+function roundRect(c,x,y,w,h,r){const rr=Math.min(r,w/2,h/2);c.beginPath();c.moveTo(x+rr,y);c.arcTo(x+w,y,x+w,y+h,rr);c.arcTo(x+w,y+h,x,y+h,rr);c.arcTo(x,y+h,x,y,rr);c.arcTo(x,y,x+w,y,rr);c.closePath();}
+function wrapText(c,text,x,y,maxWidth,lineHeight){const lines=measureWrappedLines(c,text,maxWidth);const start=y-(lines.length-1)*lineHeight/2;lines.forEach((line,i)=>c.fillText(line,x,start+i*lineHeight));}
+init();
+</script>
+</body>
+</html>

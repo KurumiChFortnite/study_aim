@@ -753,7 +753,7 @@ function drawArena(now,dt){
  game.projectedDots=[];
 
  // 問題文も3D空間上のボードとして配置
- const questionPanel={x:0,y:4.15,z:12.8,rotY:0,w:10.4,h:1.25};
+ const questionPanel={x:0,y:4.625,z:12.8,rotY:0,w:10.4,h:2.2};
  ctx.save();ctx.globalAlpha=.96;
  if(drawWorldPanel(questionPanel,'#0a1b29ee','#ffd45a')){
   drawTextOnPanel3D(q.q,questionPanel,18,.34,'#fff7d1',900);

@@ -93,6 +93,7 @@ button{cursor:pointer}
 .aim-pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(3,52px);gap:5px;align-content:center;justify-content:center;flex:1}
 .mobile-btn{border:1px solid #41627d;background:#17314a;color:#fff;border-radius:12px;font-size:22px;font-weight:900;box-shadow:inset 0 -4px 0 #091522}
 .mobile-btn:active{transform:translateY(2px);box-shadow:inset 0 -2px 0 #091522}
+#mobileHomeBtn{align-self:center;min-width:92px;height:52px;padding:0 12px;border-color:#9d4055;background:#562735;font-size:15px}
 #fireBtn{width:130px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ff8592,#b72a43 68%);border:5px solid #ffbdc6;font-size:22px;color:#fff;font-weight:900}
 #fireBtn.cool{filter:grayscale(.8);opacity:.55}
 .modal-bg{position:absolute;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
@@ -216,6 +217,7 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
    <button class="mobile-btn aim" data-dx="-1" data-dy="0">◀</button><button class="mobile-btn aim" data-dx="0" data-dy="1">▼</button><button class="mobile-btn aim" data-dx="1" data-dy="0">▶</button>
    <span></span><button class="mobile-btn" id="centerBtn">◎</button><span></span>
   </div>
+  <button id="mobileHomeBtn" class="mobile-btn" type="button">🏠 ホーム</button>
   <button id="fireBtn">発射</button>
  </div>
 </section>
@@ -426,6 +428,7 @@ function bindEvents(){
  $('resumeBtn').onclick=resumeGame;
  $('pauseSettingsBtn').onclick=()=>{game.settingsFromPause=true;$('pauseModal').classList.add('hidden');$('settingsModal').classList.remove('hidden');};
  $('pauseHomeBtn').onclick=()=>{if(confirm('現在のゲームを終了してホームに戻りますか？'))backToMenu();};
+ $('mobileHomeBtn').onclick=()=>{if(confirm('現在のゲームを終了してホームに戻りますか？'))backToMenu();};
  $('resetScoresBtn').onclick=()=>{if(confirm('すべてのハイスコアを削除しますか？')){localStorage.removeItem(STORAGE.scores);renderScores();}};
  $('nextBtn').onclick=()=>{
   if(game.pauseStarted){game.pausedTotal+=performance.now()-game.pauseStarted;game.pauseStarted=0;}

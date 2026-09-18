@@ -813,13 +813,14 @@ function wrapText(c,text,x,y,maxWidth,lineHeight){const lines=measureWrappedLine
 init();
 
 // 最小化中の「📺 メニューを表示」をドラッグ移動できるようにする。
-// タップは従来どおり復元、ドラッグ時は復元せず位置だけ変更する。
+// スマホでは touchstart/move/end を直接使い、タップとドラッグを確実に分離する。
 (function setupYoutubeMinimizedDrag(){
  const widget=document.getElementById('youtubeWidget');
  const restore=document.getElementById('youtubeRestoreBtn');
  if(!widget||!restore)return;
  const KEY='studyAimYoutubeMinimizedPositionV1';
  let drag=null;
+ let suppressClickUntil=0;
 
  function savePosition(){
   try{localStorage.setItem(KEY,JSON.stringify({left:widget.style.left,top:widget.style.top}));}catch(e){}
@@ -839,41 +840,79 @@ init();
    top:Math.max(4,Math.min(innerHeight-r.height-4,top))
   };
  }
+ function begin(x,y,id){
+  if(!widget.classList.contains('minimized'))return false;
+  const r=widget.getBoundingClientRect();
+  drag={id,startX:x,startY:y,offsetX:x-r.left,offsetY:y-r.top,moved:false};
+  return true;
+ }
+ function move(x,y,id){
+  if(!drag||drag.id!==id||!widget.classList.contains('minimized'))return false;
+  if(Math.hypot(x-drag.startX,y-drag.startY)>7)drag.moved=true;
+  if(!drag.moved)return false;
+  const pos=clampPosition(x-drag.offsetX,y-drag.offsetY);
+  widget.style.left=pos.left+'px';widget.style.top=pos.top+'px';
+  widget.style.right='auto';widget.style.bottom='auto';
+  return true;
+ }
+ function end(id){
+  if(!drag||drag.id!==id)return null;
+  const moved=drag.moved;drag=null;
+  if(moved){savePosition();suppressClickUntil=Date.now()+700;}
+  return moved;
+ }
 
  applySavedPosition();
  restore.style.touchAction='none';
+ restore.style.userSelect='none';
+ restore.style.webkitUserSelect='none';
  restore.style.cursor='move';
 
+ // スマホ・タブレット：タッチを直接処理する。
+ restore.addEventListener('touchstart',e=>{
+  if(e.touches.length!==1)return;
+  const t=e.touches[0];
+  if(begin(t.clientX,t.clientY,'touch'))e.preventDefault();
+ },{capture:true,passive:false});
+ restore.addEventListener('touchmove',e=>{
+  if(e.touches.length!==1||!drag)return;
+  const t=e.touches[0];
+  if(move(t.clientX,t.clientY,'touch'))e.preventDefault();
+ },{capture:true,passive:false});
+ restore.addEventListener('touchend',e=>{
+  if(!drag)return;
+  const moved=end('touch');
+  e.preventDefault();
+  e.stopPropagation();
+  // 動かしていなければ通常の「メニューを表示」と同じクリックを発生させる。
+  if(moved===false){
+   suppressClickUntil=0;
+   setTimeout(()=>restore.click(),0);
+  }
+ },{capture:true,passive:false});
+ restore.addEventListener('touchcancel',e=>{if(drag){end('touch');e.preventDefault();}},{capture:true,passive:false});
+
+ // PC等：マウス/ペンでもドラッグ可能。
  restore.addEventListener('pointerdown',e=>{
-  if(!widget.classList.contains('minimized'))return;
-  const r=widget.getBoundingClientRect();
-  drag={id:e.pointerId,startX:e.clientX,startY:e.clientY,offsetX:e.clientX-r.left,offsetY:e.clientY-r.top,moved:false};
-  restore.setPointerCapture?.(e.pointerId);
+  if(e.pointerType==='touch')return;
+  if(begin(e.clientX,e.clientY,e.pointerId))restore.setPointerCapture?.(e.pointerId);
  },true);
  restore.addEventListener('pointermove',e=>{
-  if(!drag||drag.id!==e.pointerId||!widget.classList.contains('minimized'))return;
-  if(Math.hypot(e.clientX-drag.startX,e.clientY-drag.startY)>6)drag.moved=true;
-  if(!drag.moved)return;
-  e.preventDefault();e.stopPropagation();
-  const pos=clampPosition(e.clientX-drag.offsetX,e.clientY-drag.offsetY);
-  widget.style.left=pos.left+'px';widget.style.top=pos.top+'px';
-  widget.style.right='auto';widget.style.bottom='auto';
+  if(e.pointerType==='touch')return;
+  if(move(e.clientX,e.clientY,e.pointerId)){e.preventDefault();e.stopPropagation();}
  },true);
- function finishDrag(e){
-  if(!drag||drag.id!==e.pointerId)return;
-  const moved=drag.moved;drag=null;
-  if(moved){
-   e.preventDefault();e.stopPropagation();
-   savePosition();
-   restore.dataset.dragged='1';
-   setTimeout(()=>delete restore.dataset.dragged,0);
-  }
- }
- restore.addEventListener('pointerup',finishDrag,true);
- restore.addEventListener('pointercancel',finishDrag,true);
+ restore.addEventListener('pointerup',e=>{
+  if(e.pointerType==='touch')return;
+  const moved=end(e.pointerId);
+  if(moved){e.preventDefault();e.stopPropagation();}
+ },true);
+ restore.addEventListener('pointercancel',e=>{if(e.pointerType!=='touch')end(e.pointerId);},true);
+
+ // ドラッグ直後にブラウザが生成する click で復元されるのを防ぐ。
  restore.addEventListener('click',e=>{
-  if(restore.dataset.dragged==='1'){e.preventDefault();e.stopImmediatePropagation();}
+  if(Date.now()<suppressClickUntil){e.preventDefault();e.stopImmediatePropagation();}
  },true);
+
  window.addEventListener('resize',()=>{
   if(!widget.classList.contains('minimized'))return;
   const r=widget.getBoundingClientRect();

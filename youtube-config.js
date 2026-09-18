@@ -4,7 +4,7 @@ window.STUDY_AIM_YOUTUBE_CONFIG = Object.freeze({
   iframeApiUrl: 'https://www.youtube.com/iframe_api',
   watchThresholdSeconds: 30,
   watchedPriorityPoints: 1000,
-  impressionPriorityPoints: 1,
+  impressionPriorityPoints: 5,
   ageDayPriorityPoints: 1,
   newVideoDays: 3,
   messageDurationMs: 2600,

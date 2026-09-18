@@ -84,7 +84,10 @@ button{cursor:pointer}
 .youtube-copy{margin:8px 0 0;font-size:10px;line-height:1.5;color:#c9d9e7}.youtube-copy p{margin:3px 0}
 .youtube-status{font-size:11px;color:var(--muted);padding:5px 0}.youtube-status.error{color:#ff9aaa}
 .youtube-restore{display:none;background:#19344ef5;box-shadow:0 8px 25px #0008}
+.youtube-mute{border:1px solid #355774;border-radius:8px;padding:6px 8px;background:#19344e;color:#eef7ff;font:700 11px system-ui;cursor:pointer}
+.youtube-mini-mute{display:none;position:absolute;z-index:6;left:6px;top:6px;padding:5px 7px;touch-action:manipulation}
 #youtubeWidget.minimized .youtube-restore{display:block;position:absolute;z-index:4;right:6px;top:6px;padding:5px 7px;opacity:.88}
+#youtubeWidget.minimized .youtube-mini-mute{display:block;opacity:.92}
 #youtubeWidget.minimized .youtube-shell{display:block}
 #youtubeWidget.minimized .youtube-dragbar,#youtubeWidget.minimized .youtube-subtitle,#youtubeWidget.minimized .youtube-status,#youtubeWidget.minimized .youtube-controls,#youtubeWidget.minimized .youtube-copy{display:none}
 #youtubeWidget.minimized .youtube-new{display:none}
@@ -177,6 +180,7 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
 
 <aside id="youtubeWidget" aria-label="YouTube動画プレイヤー">
  <button id="youtubeRestoreBtn" class="youtube-restore" type="button">📺 メニューを表示</button>
+ <button id="youtubeMiniMuteBtn" class="youtube-mute youtube-mini-mute" type="button" aria-label="動画の消音切替">🔊 音あり</button>
  <div class="youtube-shell">
   <div id="youtubeDragHandle" class="youtube-dragbar"><strong>🎧 動画を流しながらAIM練習！</strong><span>ここをドラッグ</span></div>
   <div class="youtube-body">
@@ -185,6 +189,7 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
    <div id="youtubeStatus" class="youtube-status">動画を読み込んでいます…</div>
    <div class="youtube-controls">
     <button id="youtubeNextBtn" type="button">🔄 別の動画</button>
+    <button id="youtubeMuteBtn" class="youtube-mute" type="button">🔊 音あり</button>
     <a id="youtubeOpenLink" href="#" target="_blank" rel="noopener noreferrer">💬 要望を書く ↗</a>
     <div class="youtube-size-controls" aria-label="動画サイズ">
      <button type="button" data-youtube-size="minimized">▁ 最小</button><button type="button" data-youtube-size="small">小</button><button type="button" data-youtube-size="medium">中</button><button type="button" data-youtube-size="large">大</button>
@@ -813,6 +818,43 @@ function measureWrappedLines(c,text,maxWidth){const chars=[...String(text)];let 
 function roundRect(c,x,y,w,h,r){const rr=Math.min(r,w/2,h/2);c.beginPath();c.moveTo(x+rr,y);c.arcTo(x+w,y,x+w,y+h,rr);c.arcTo(x+w,y+h,x,y+h,rr);c.arcTo(x,y+h,x,y,rr);c.arcTo(x,y,x+w,y,rr);c.closePath();}
 function wrapText(c,text,x,y,maxWidth,lineHeight){const lines=measureWrappedLines(c,text,maxWidth);const start=y-(lines.length-1)*lineHeight/2;lines.forEach((line,i)=>c.fillText(line,x,start+i*lineHeight));}
 init();
+
+// YouTube消音ボタン。通常表示・最小化表示のどちらからでもON/OFFできる。
+(function setupYoutubeMuteButtons(){
+ const normalBtn=document.getElementById('youtubeMuteBtn');
+ const miniBtn=document.getElementById('youtubeMiniMuteBtn');
+ if(!normalBtn||!miniBtn)return;
+ const KEY='studyAimYoutubeMutedV1';
+ let muted=false;
+ try{muted=localStorage.getItem(KEY)==='1';}catch(e){}
+ function playerIframe(){return document.querySelector('iframe#youtubePlayer')||document.querySelector('#youtubePlayer iframe');}
+ function command(func){
+  const iframe=playerIframe();
+  if(!iframe?.contentWindow)return false;
+  iframe.contentWindow.postMessage(JSON.stringify({event:'command',func,args:[]}), '*');
+  return true;
+ }
+ function refresh(){
+  const label=muted?'🔇 消音中':'🔊 音あり';
+  normalBtn.textContent=label;miniBtn.textContent=label;
+  normalBtn.setAttribute('aria-pressed',String(muted));miniBtn.setAttribute('aria-pressed',String(muted));
+ }
+ function apply(){
+  command(muted?'mute':'unMute');
+  try{localStorage.setItem(KEY,muted?'1':'0');}catch(e){}
+  refresh();
+ }
+ function toggle(e){e.preventDefault();e.stopPropagation();muted=!muted;apply();}
+ normalBtn.addEventListener('click',toggle);
+ miniBtn.addEventListener('click',toggle);
+ // 動画iframeの生成・差し替え後にも保存済みの消音状態を再適用する。
+ const target=document.getElementById('youtubePlayer');
+ if(target){
+  new MutationObserver(()=>{if(muted){setTimeout(()=>command('mute'),100);setTimeout(()=>command('mute'),700);}}).observe(target,{childList:true,subtree:true});
+ }
+ refresh();
+ if(muted){setTimeout(()=>command('mute'),500);setTimeout(()=>command('mute'),1500);}
+})();
 
 // 最小化中の「📺 メニューを表示」をドラッグ移動できるようにする。
 // スマホでは touchstart/move/end を直接使い、タップとドラッグを確実に分離する。

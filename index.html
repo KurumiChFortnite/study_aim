@@ -398,7 +398,7 @@ function validateQuestionCoverage(){
  return expected.filter(b=>!QUESTIONS.some(q=>q.grade===b.grade&&q.term===b.term&&q.difficulty===b.difficulty&&q.subject===b.subject));
 }
 
-const STORAGE={scores:'studyAimScoresV1',settings:'studyAimSettingsV1'};
+const STORAGE={scores:'studyAimScoresV1',settings:'studyAimSettingsV1',menuSelections:'studyAimMenuSelectionsV1'};
 const DEFAULT_SETTINGS={sensitivity:1,invertView:false,centerKey:'KeyC',up:'KeyW',left:'KeyA',down:'KeyS',right:'KeyD'};
 let settings={...DEFAULT_SETTINGS};
 let game={active:false,questions:[],index:0,correct:0,shots:0,hits:0,missShots:0,startTime:0,elapsed:0,pausedTotal:0,pauseStarted:0,locked:false,cooldownUntil:0,targets:[],aimX:0,aimY:0,lastFrame:0,selectedGrades:[],selectedSubjects:[],targetCount:4,yaw:0,pitch:0,playerX:0,playerY:0,playerZ:0,moveKeys:{},projectedDots:[],touchStart:null,touchMoved:false,pausedByMenu:false,settingsFromPause:false,suppressPauseOnUnlock:false};
@@ -410,7 +410,7 @@ let DPR=1, cw=0,ch=0;
 async function init(){
  $('gradeChecks').innerHTML=Object.entries(GRADE_TERMS).map(([k,v])=>`<label class="check-card"><input type="checkbox" value="${k}" ${k==='g4_t1'?'checked':''}>${v.html}</label>`).join('');
  $('subjectChecks').innerHTML=SUBJECTS.map(s=>`<label class="check-card"><input type="checkbox" value="${s}" checked>${s}</label>`).join('');
- loadSettings(); updateSettingsUI(); renderScores(); bindEvents(); resizeCanvas(); requestAnimationFrame(loop);
+ loadMenuSelections();loadSettings(); updateSettingsUI(); renderScores(); bindEvents(); resizeCanvas(); requestAnimationFrame(loop);
  await loadExternalQuestionData();
  const missing=validateQuestionCoverage();
  if(questionDataReady&&missing.length){
@@ -419,6 +419,7 @@ async function init(){
  }
 }
 function bindEvents(){
+ ['gradeChecks','subjectChecks','targetCountChecks'].forEach(id=>$(id).addEventListener('change',saveMenuSelections));
  $('startBtn').onclick=()=>startGame(false);
  $('settingsBtn').onclick=()=>{game.settingsFromPause=false;$('settingsModal').classList.remove('hidden');};
  $('closeSettings').onclick=closeSettingsModal; $('saveSettings').onclick=saveSettings;
@@ -510,6 +511,19 @@ function bindEvents(){
 }
 function setupKeyBinder(buttonId,prop){
  const b=$(buttonId); b.onclick=()=>{b.textContent='キーを押してください…';const h=e=>{e.preventDefault();settings[prop]=e.code;b.textContent=keyName(e.code);window.removeEventListener('keydown',h,true)};window.addEventListener('keydown',h,true)};
+}
+function loadMenuSelections(){
+ try{
+  const saved=JSON.parse(localStorage.getItem(STORAGE.menuSelections)||'null');
+  if(!saved||saved.version!==1)return;
+  if(Array.isArray(saved.grades)){const values=new Set(saved.grades);document.querySelectorAll('#gradeChecks input').forEach(input=>input.checked=values.has(input.value));}
+  if(Array.isArray(saved.subjects)){const values=new Set(saved.subjects);document.querySelectorAll('#subjectChecks input').forEach(input=>input.checked=values.has(input.value));}
+  const target=document.querySelector(`input[name="targetCount"][value="${Number(saved.targetCount)}"]`);if(target)target.checked=true;
+ }catch(e){console.warn('メニュー選択設定を復元できませんでした:',e);}
+}
+function saveMenuSelections(){
+ const value={version:1,grades:selected('#gradeChecks input'),subjects:selected('#subjectChecks input'),targetCount:Number(document.querySelector('input[name="targetCount"]:checked')?.value)||4};
+ try{localStorage.setItem(STORAGE.menuSelections,JSON.stringify(value));}catch(e){console.warn('メニュー選択設定を保存できませんでした:',e);}
 }
 function keyName(code){return code.replace('Key','').replace('Digit','').replace('Space','スペース').replace('Arrow','矢印');}
 function loadSettings(){try{settings={...DEFAULT_SETTINGS,...JSON.parse(localStorage.getItem(STORAGE.settings)||'{}')}}catch{settings={...DEFAULT_SETTINGS}}}

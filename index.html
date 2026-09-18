@@ -71,7 +71,8 @@ button{cursor:pointer}
 }
 @media(prefers-reduced-motion:reduce){#youtubeReminderToast.show{animation:none}}
 #youtubeWidget{position:fixed;z-index:12;left:auto;right:14px;top:auto;bottom:14px;width:min(var(--yt-player-width,400px),calc(100vw - 20px));max-height:calc(100vh - 20px);overflow:auto;background:#0d1c2df5;border:1px solid #355774;border-radius:14px;box-shadow:0 18px 55px #000a;color:var(--text);overscroll-behavior:contain}
-#youtubeWidget.minimized{width:auto;overflow:visible;background:transparent;border:0;box-shadow:none}
+#youtubeWidget.game-paused{z-index:31;box-shadow:0 20px 70px #000,0 0 0 2px #35d6ff88}
+#youtubeWidget.minimized{overflow:visible;background:#050a10;border-color:#35d6ff88}
 .youtube-dragbar{display:flex;align-items:center;gap:8px;padding:9px 10px;cursor:move;touch-action:none;user-select:none;background:#13263b;border-radius:14px 14px 0 0}
 .youtube-dragbar strong{font-size:13px;flex:1}.youtube-dragbar span{font-size:11px;color:var(--muted)}
 .youtube-body{padding:0 10px 10px}.youtube-subtitle{margin:7px 0;color:var(--muted);font-size:11px;line-height:1.4}
@@ -83,7 +84,11 @@ button{cursor:pointer}
 .youtube-copy{margin:8px 0 0;font-size:10px;line-height:1.5;color:#c9d9e7}.youtube-copy p{margin:3px 0}
 .youtube-status{font-size:11px;color:var(--muted);padding:5px 0}.youtube-status.error{color:#ff9aaa}
 .youtube-restore{display:none;background:#19344ef5;box-shadow:0 8px 25px #0008}
-#youtubeWidget.minimized .youtube-restore{display:block}#youtubeWidget.minimized .youtube-shell{display:none}
+#youtubeWidget.minimized .youtube-restore{display:block;position:absolute;z-index:4;right:6px;top:6px;padding:5px 7px;opacity:.88}
+#youtubeWidget.minimized .youtube-shell{display:block}
+#youtubeWidget.minimized .youtube-dragbar,#youtubeWidget.minimized .youtube-subtitle,#youtubeWidget.minimized .youtube-status,#youtubeWidget.minimized .youtube-controls,#youtubeWidget.minimized .youtube-copy{display:none}
+#youtubeWidget.minimized .youtube-new{display:none}
+#youtubeWidget.minimized .youtube-body{padding:0}
 #mobileControls{display:none;flex:none;height:190px;background:#0b1827;border-top:1px solid #29445e;padding:10px;gap:12px;touch-action:none}
 .aim-pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(3,52px);gap:5px;align-content:center;justify-content:center;flex:1}
 .mobile-btn{border:1px solid #41627d;background:#17314a;color:#fff;border-radius:12px;font-size:22px;font-weight:900;box-shadow:inset 0 -4px 0 #091522}
@@ -146,6 +151,13 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
    <div class="subject-grid" id="subjectChecks"></div>
   </div>
   <div class="panel">
+   <h2>③ 的の数</h2>
+   <div class="subject-grid" id="targetCountChecks">
+    <label class="check-card"><input type="radio" name="targetCount" value="4" checked><span class="grade-label">4つ<br><small>すべて撃って判定</small></span></label>
+    <label class="check-card"><input type="radio" name="targetCount" value="1"><span class="grade-label">1つ<br><small>1発で判定</small></span></label>
+   </div>
+  </div>
+  <div class="panel">
    <h2>ハイスコア（ベストタイム）</h2>
    <div id="scoreList" class="score-list"></div>
    <div class="actions">
@@ -155,13 +167,13 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
    </div>
   </div>
   <div class="panel small">
-   <b>遊び方：</b> 3Dルーム内の的を中央照準で狙います。PCはWASDで移動、マウスで視点操作、クリックで発射します。矢印キーでも視点を動かせます。スマホはスワイプで視点移動、短いタップで発射します。1つの答えに対応する4個の的をすべて撃つと判定され、空振りすると0.75秒間撃てません。
+   <b>遊び方：</b> 3Dルーム内の的を中央照準で狙います。PCはWASDで移動、マウスで視点操作、クリックで発射します。矢印キーでも視点を動かせます。スマホはスワイプで視点移動、短いタップで発射します。1つの答えに対応する選択数の的をすべて撃つと判定され、空振りすると0.75秒間撃てません。
   </div>
  </div>
 </section>
 
 <aside id="youtubeWidget" aria-label="YouTube動画プレイヤー">
- <button id="youtubeRestoreBtn" class="youtube-restore" type="button">📺 動画を表示</button>
+ <button id="youtubeRestoreBtn" class="youtube-restore" type="button">📺 メニューを表示</button>
  <div class="youtube-shell">
   <div id="youtubeDragHandle" class="youtube-dragbar"><strong>🎧 動画を流しながらAIM練習！</strong><span>ここをドラッグ</span></div>
   <div class="youtube-body">
@@ -172,7 +184,7 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
     <button id="youtubeNextBtn" type="button">🔄 別の動画</button>
     <a id="youtubeOpenLink" href="#" target="_blank" rel="noopener noreferrer">💬 要望を書く ↗</a>
     <div class="youtube-size-controls" aria-label="動画サイズ">
-     <button type="button" data-youtube-size="small">小</button><button type="button" data-youtube-size="medium">中</button><button type="button" data-youtube-size="large">大</button>
+     <button type="button" data-youtube-size="minimized">▁ 最小</button><button type="button" data-youtube-size="small">小</button><button type="button" data-youtube-size="medium">中</button><button type="button" data-youtube-size="large">大</button>
     </div>
    </div>
    <div class="youtube-copy">
@@ -225,7 +237,6 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
   <h2>設定</h2>
   <div class="setting-row"><label>視点感度</label><div><input id="sensitivity" type="range" min="0.03" max="2.5" step="0.01"><span id="sensitivityValue"></span></div></div>
   <div class="setting-row"><label>視点操作</label><label class="check-card" style="margin:0"><input id="invertView" type="checkbox">上下左右を反転する</label></div>
-  <div class="setting-row"><label>発射キー</label><button id="bindFire" class="secondary">クリックして変更</button></div>
   <div class="setting-row"><label>照準を中央へ戻すキー</label><button id="bindCenter" class="secondary">クリックして変更</button></div>
   <div class="setting-row"><label>前進キー</label><button id="bindMoveUp" class="secondary">クリックして変更</button></div>
   <div class="setting-row"><label>左移動キー</label><button id="bindMoveLeft" class="secondary">クリックして変更</button></div>
@@ -388,9 +399,9 @@ function validateQuestionCoverage(){
 }
 
 const STORAGE={scores:'studyAimScoresV1',settings:'studyAimSettingsV1'};
-const DEFAULT_SETTINGS={sensitivity:1,invertView:false,fireKey:'Space',centerKey:'KeyC',up:'KeyW',left:'KeyA',down:'KeyS',right:'KeyD'};
+const DEFAULT_SETTINGS={sensitivity:1,invertView:false,centerKey:'KeyC',up:'KeyW',left:'KeyA',down:'KeyS',right:'KeyD'};
 let settings={...DEFAULT_SETTINGS};
-let game={active:false,questions:[],index:0,correct:0,shots:0,hits:0,missShots:0,startTime:0,elapsed:0,pausedTotal:0,pauseStarted:0,locked:false,cooldownUntil:0,targets:[],aimX:0,aimY:0,lastFrame:0,selectedGrades:[],selectedSubjects:[],yaw:0,pitch:0,playerX:0,playerY:0,playerZ:0,moveKeys:{},projectedDots:[],touchStart:null,touchMoved:false,pausedByMenu:false,settingsFromPause:false,suppressPauseOnUnlock:false};
+let game={active:false,questions:[],index:0,correct:0,shots:0,hits:0,missShots:0,startTime:0,elapsed:0,pausedTotal:0,pauseStarted:0,locked:false,cooldownUntil:0,targets:[],aimX:0,aimY:0,lastFrame:0,selectedGrades:[],selectedSubjects:[],targetCount:4,yaw:0,pitch:0,playerX:0,playerY:0,playerZ:0,moveKeys:{},projectedDots:[],touchStart:null,touchMoved:false,pausedByMenu:false,settingsFromPause:false,suppressPauseOnUnlock:false};
 
 const $=id=>document.getElementById(id);
 const canvas=$('gameCanvas'),ctx=canvas.getContext('2d');
@@ -482,7 +493,6 @@ function bindEvents(){
   if(e.code==='Escape'&&game.active&&!game.pauseStarted&&!game.locked){e.preventDefault();pauseGame();return;}
   if(!game.active||game.pausedByMenu||!$('explainModal').classList.contains('hidden')||!$('settingsModal').classList.contains('hidden'))return;
   if([settings.up,settings.left,settings.down,settings.right].includes(e.code)){game.moveKeys[e.code]=true;e.preventDefault();}
-  if(e.code===settings.fireKey){e.preventDefault();fire();}
   if(e.code===settings.centerKey){e.preventDefault();centerAim();}
   const step=.035*settings.sensitivity;
   const direction=settings.invertView?-1:1;
@@ -495,7 +505,7 @@ function bindEvents(){
  window.addEventListener('keyup',e=>{if([settings.up,settings.left,settings.down,settings.right].includes(e.code))game.moveKeys[e.code]=false;});
  window.addEventListener('blur',()=>game.moveKeys={});
  window.addEventListener('resize',resizeCanvas);
- setupKeyBinder('bindFire','fireKey'); setupKeyBinder('bindCenter','centerKey');
+ setupKeyBinder('bindCenter','centerKey');
  setupKeyBinder('bindMoveUp','up'); setupKeyBinder('bindMoveLeft','left'); setupKeyBinder('bindMoveDown','down'); setupKeyBinder('bindMoveRight','right');
 }
 function setupKeyBinder(buttonId,prop){
@@ -507,14 +517,15 @@ function updateSettingsUI(){
  $('sensitivity').value=settings.sensitivity;$('sensitivityValue').textContent=` ${Number(settings.sensitivity).toFixed(2)}`;
  $('invertView').checked=Boolean(settings.invertView);
  $('sensitivity').oninput=()=>$('sensitivityValue').textContent=` ${Number($('sensitivity').value).toFixed(2)}`;
- $('bindFire').textContent=keyName(settings.fireKey);$('bindCenter').textContent=keyName(settings.centerKey);
+ $('bindCenter').textContent=keyName(settings.centerKey);
  $('bindMoveUp').textContent=keyName(settings.up);$('bindMoveLeft').textContent=keyName(settings.left);$('bindMoveDown').textContent=keyName(settings.down);$('bindMoveRight').textContent=keyName(settings.right);
  $('keyUpLabel').textContent=`前:${keyName(settings.up)}`;$('keyLeftLabel').textContent=`左:${keyName(settings.left)}`;$('keyDownLabel').textContent=`後:${keyName(settings.down)}`;$('keyRightLabel').textContent=`右:${keyName(settings.right)}`;
 }
 function saveSettings(){settings.sensitivity=Number($('sensitivity').value);settings.invertView=$('invertView').checked;localStorage.setItem(STORAGE.settings,JSON.stringify(settings));updateSettingsUI();$('settingsModal').classList.add('hidden');if(game.settingsFromPause){$('pauseModal').classList.remove('hidden');game.settingsFromPause=false;}}
 function closeSettingsModal(){$('settingsModal').classList.add('hidden');if(game.settingsFromPause){$('pauseModal').classList.remove('hidden');game.settingsFromPause=false;}}
-function pauseGame(){if(!game.active||game.pausedByMenu||game.pauseStarted)return;game.pausedByMenu=true;game.pauseStarted=performance.now();releasePointerForUi();$('pauseModal').classList.remove('hidden');}
-function resumeGame(){if(!game.pausedByMenu)return;if(game.pauseStarted){game.pausedTotal+=performance.now()-game.pauseStarted;game.pauseStarted=0;}game.pausedByMenu=false;$('pauseModal').classList.add('hidden');lockPointerForPlay();}
+function setYoutubePauseInteraction(enabled){$('youtubeWidget')?.classList.toggle('game-paused',enabled);}
+function pauseGame(){if(!game.active||game.pausedByMenu||game.pauseStarted)return;game.pausedByMenu=true;game.pauseStarted=performance.now();releasePointerForUi();setYoutubePauseInteraction(true);$('pauseModal').classList.remove('hidden');}
+function resumeGame(){if(!game.pausedByMenu)return;if(game.pauseStarted){game.pausedTotal+=performance.now()-game.pauseStarted;game.pauseStarted=0;}game.pausedByMenu=false;setYoutubePauseInteraction(false);$('pauseModal').classList.add('hidden');lockPointerForPlay();}
 function selected(selector){return [...document.querySelectorAll(selector+':checked')].map(x=>x.value)}
 function lockPointerForPlay(){
  if(!game.active || !matchMedia('(pointer:fine)').matches)return;
@@ -529,12 +540,12 @@ function releasePointerForUi(){
 }
 function startGame(retry=false){
  if(!questionDataReady)return alert('問題JSONの読み込みが完了していません。');
- if(!retry){game.selectedGrades=selected('#gradeChecks input');game.selectedSubjects=selected('#subjectChecks input');}
+ if(!retry){game.selectedGrades=selected('#gradeChecks input');game.selectedSubjects=selected('#subjectChecks input');game.targetCount=Number(document.querySelector('input[name="targetCount"]:checked')?.value)||4;}
  if(!game.selectedGrades.length)return alert('学年を1つ以上選んでください。');
  if(!game.selectedSubjects.length)return alert('教科を1つ以上選んでください。');
  let pool=QUESTIONS.filter(q=>game.selectedGrades.some(key=>{const advanced=key.endsWith('_adv');const base=advanced?key.slice(0,-4):key;return base===`${q.grade}_t${q.term}`&&(advanced?q.difficulty==='advanced':q.difficulty!=='advanced');})&&game.selectedSubjects.includes(q.subject));
  if(!pool.length)return alert('該当する問題がありません。学年または教科を変更してください。');
- game.questions=sampleQuestions(pool,15);game.index=0;game.correct=0;game.shots=0;game.hits=0;game.missShots=0;game.locked=false;game.cooldownUntil=0;game.active=true;game.pausedByMenu=false;game.playerX=0;game.playerY=0;game.playerZ=0;game.moveKeys={};game.startTime=performance.now();game.elapsed=0;game.pausedTotal=0;game.pauseStarted=0;$('pauseModal').classList.add('hidden');
+ game.questions=sampleQuestions(pool,15);game.index=0;game.correct=0;game.shots=0;game.hits=0;game.missShots=0;game.locked=false;game.cooldownUntil=0;game.active=true;game.pausedByMenu=false;game.playerX=0;game.playerY=0;game.playerZ=0;game.moveKeys={};game.startTime=performance.now();game.elapsed=0;game.pausedTotal=0;game.pauseStarted=0;setYoutubePauseInteraction(false);$('pauseModal').classList.add('hidden');
  $('menuScreen').classList.add('hidden');$('gameScreen').classList.remove('hidden');resizeCanvas();centerAim();showQuestion();
  // スタートボタンのクリック操作をそのまま利用し、開始直後にFPS視点へ入る
  lockPointerForPlay();
@@ -582,7 +593,7 @@ function createTargets(choices){
  game.targets=choices.map((text,i)=>{
   const base=shuffled[i];
   const target={text,index:i,...base,w:5.45,h:3.85,dots:[],completed:false};
-  const positions=[[-1.72,.40],[1.72,.40],[-1.72,-1.02],[1.72,-1.02]].sort(()=>Math.random()-.5);
+  const positions=(game.targetCount===1?[[0,-.3]]:[[-1.72,.40],[1.72,.40],[-1.72,-1.02],[1.72,-1.02]]).sort(()=>Math.random()-.5);
   for(const [ox,oy] of positions){
    const localX=ox+(Math.random()-.5)*.25,localY=oy+(Math.random()-.5)*.18;
    const world=panelPoint(target,localX,localY,-.06);
@@ -605,7 +616,7 @@ function fire(){
   game.hits++;best.dot.hit=true;best.dot.flash=1;
   const remaining=best.target.dots.filter(d=>!d.hit).length;
   if(remaining===0){
-   best.target.completed=true;showToast('4つ命中！ 判定します','good');setTimeout(()=>answerTarget(best.target.index),220);
+   best.target.completed=true;showToast(game.targetCount===1?'命中！ 判定します':'4つ命中！ 判定します','good');setTimeout(()=>answerTarget(best.target.index),220);
   }else showToast(`命中！ あと${remaining}個`,'good');
  }else{
   game.missShots++;game.cooldownUntil=now+750;showToast('MISS - 0.75秒クールタイム','bad');
@@ -621,16 +632,16 @@ function answerTarget(index){
 }
 function nextQuestion(){if(!game.active)return;game.index++;if(game.index>=15){finishGame();return;}showQuestion();}
 function finishGame(){
- game.active=false;game.elapsed=performance.now()-game.startTime-game.pausedTotal-(game.pauseStarted?performance.now()-game.pauseStarted:0);const key=scoreKey();const scores=getScores();const old=scores[key];const isRecord=!old||game.elapsed<old.time;
+ game.active=false;setYoutubePauseInteraction(false);game.elapsed=performance.now()-game.startTime-game.pausedTotal-(game.pauseStarted?performance.now()-game.pauseStarted:0);const key=scoreKey();const scores=getScores();const old=scores[key];const isRecord=!old||game.elapsed<old.time;
  if(isRecord)scores[key]={time:game.elapsed,date:new Date().toLocaleDateString('ja-JP'),correct:game.correct,accuracy:accuracy()};localStorage.setItem(STORAGE.scores,JSON.stringify(scores));
  $('resultTime').textContent=formatTime(game.elapsed);$('resultCorrect').textContent=`${game.correct}/15`;$('resultAccuracy').textContent=`${accuracy()}%`;$('resultMisses').textContent=game.missShots;
  $('recordMessage').textContent=isRecord?'🏆 新記録！ローカルストレージに保存しました。':`ベスト：${formatTime(old.time)}`;$('resultModal').classList.remove('hidden');
 }
-function scoreKey(){return [...game.selectedGrades].sort().join('+')+'__'+[...game.selectedSubjects].sort().join('+');}
-function scoreLabel(key){const [g,s]=key.split('__');return `${g.split('+').map(x=>GRADE_TERMS[x]?.label||GRADES[x]||x).join('＋')} / ${s.split('+').join('・')}`}
+function scoreKey(){return [...game.selectedGrades].sort().join('+')+'__'+[...game.selectedSubjects].sort().join('+')+`__targets${game.targetCount}`;}
+function scoreLabel(key){const [g,s,targetKey]=key.split('__');const targetCount=targetKey?.replace('targets','')||'4';return `${g.split('+').map(x=>GRADE_TERMS[x]?.label||GRADES[x]||x).join('＋')} / ${s.split('+').join('・')} / 的${targetCount}つ`}
 function getScores(){try{return JSON.parse(localStorage.getItem(STORAGE.scores)||'{}')}catch{return {}}}
 function renderScores(){const entries=Object.entries(getScores()).sort((a,b)=>a[1].time-b[1].time);$('scoreList').innerHTML=entries.length?entries.map(([k,v])=>`<div class="score-row"><span>${scoreLabel(k)}</span><b>${formatTime(v.time)}</b></div>`).join(''):'<div class="small">まだ記録がありません。</div>'}
-function backToMenu(){game.active=false;game.pausedByMenu=false;game.pauseStarted=0;releasePointerForUi();$('pauseModal').classList.add('hidden');$('settingsModal').classList.add('hidden');$('explainModal').classList.add('hidden');$('resultModal').classList.add('hidden');$('gameScreen').classList.add('hidden');$('menuScreen').classList.remove('hidden');renderScores();}
+function backToMenu(){game.active=false;game.pausedByMenu=false;game.pauseStarted=0;releasePointerForUi();setYoutubePauseInteraction(false);$('pauseModal').classList.add('hidden');$('settingsModal').classList.add('hidden');$('explainModal').classList.add('hidden');$('resultModal').classList.add('hidden');$('gameScreen').classList.add('hidden');$('menuScreen').classList.remove('hidden');renderScores();}
 function accuracy(){return game.shots?Math.round(game.hits/game.shots*100):100}
 function updateAccuracy(){$('accuracyText').textContent=accuracy()+'%'}
 function formatTime(ms){const m=Math.floor(ms/60000),s=Math.floor(ms/1000)%60,x=Math.floor(ms%1000);return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(x).padStart(3,'0')}`}

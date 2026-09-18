@@ -18,8 +18,12 @@ button{cursor:pointer}
 #menuScreen{overflow:auto;padding:18px;background:radial-gradient(circle at 50% 5%,#16334b 0,#07111e 55%)}
 .menu-wrap{width:min(920px,100%);margin:auto}
 .logo{text-align:center;margin:4px 0 12px}
-.logo h1{font-size:clamp(34px,8vw,72px);margin:0;letter-spacing:.05em;text-shadow:0 0 24px #35d6ff77}
+.logo-row{display:flex;align-items:center;justify-content:center;gap:clamp(6px,2vw,18px)}
+.logo h1{font-size:clamp(34px,8vw,72px);margin:0;letter-spacing:.05em;text-shadow:0 0 24px #35d6ff77;white-space:nowrap}
 .logo p{color:var(--muted);margin:4px 0 16px}
+.channel-banner{display:block;width:clamp(68px,17vw,230px);aspect-ratio:16/9;flex:none;border:1px solid #35d6ff88;border-radius:10px;overflow:hidden;box-shadow:0 0 20px #35d6ff33;transition:transform .18s,box-shadow .18s}
+.channel-banner:hover,.channel-banner:focus-visible{transform:scale(1.035);box-shadow:0 0 28px #35d6ff66;outline:2px solid var(--accent);outline-offset:2px}
+.channel-banner img{display:block;width:100%;height:100%;object-fit:cover}
 .panel{background:#0d1c2ddd;border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 16px 50px #0007;margin-bottom:14px}
 .panel h2{font-size:18px;margin:0 0 12px}
 .grade-grid,.subject-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px}
@@ -31,6 +35,7 @@ button{cursor:pointer}
 .secondary{background:#19344e;color:var(--text);border:1px solid #355774}
 .danger{background:#562735;color:#fff;border:1px solid #9d4055}
 .small{font-size:12px;color:var(--muted);line-height:1.6}
+.data-status{margin-top:10px}.data-status.ok{border-color:#2f8c59;background:#0c2a20}.data-status.warn{border-color:#a97a2e;background:#2c2411}.data-status.error{border-color:#a44454;background:#351923}.data-status b{color:var(--text)}.file-fallback{display:grid;gap:10px}.file-fallback input{width:100%;background:#0a1726;color:var(--text);border:1px solid #355774;border-radius:10px;padding:9px}
 .score-list{display:grid;gap:7px;max-height:170px;overflow:auto}
 .score-row{display:flex;justify-content:space-between;gap:12px;background:#0a1726;padding:9px 11px;border-radius:10px;border:1px solid #203951}
 #gameScreen{display:flex;flex-direction:column;background:#02070d}
@@ -52,6 +57,33 @@ button{cursor:pointer}
 #cooldownFill{height:100%;width:0;background:linear-gradient(90deg,#ff6476,#ffd45a)}
 #statusToast{position:absolute;left:50%;top:18px;transform:translateX(-50%);padding:10px 18px;border-radius:999px;background:#10243aee;border:1px solid #42637e;font-weight:800;opacity:0;transition:.18s;pointer-events:none;white-space:nowrap}
 #statusToast.show{opacity:1}
+#youtubeReminderToast,#youtubeEventToast{position:fixed;z-index:19;max-width:min(440px,calc(100vw - 28px));padding:10px 14px;border-radius:12px;background:#10243af2;border:1px solid #35d6ff;color:#fff;font-weight:800;box-shadow:0 10px 35px #0009;opacity:0;transition:opacity .22s,transform .22s;pointer-events:none}
+#youtubeReminderToast{left:50%;top:14px;z-index:30;transform:translate(-50%,-10px);text-align:center}
+#youtubeEventToast{right:14px;bottom:68px;transform:translateY(10px);border-color:#ffd45a}
+#youtubeReminderToast.show{opacity:1;transform:translate(-50%,0);animation:youtubeReminderShake .52s ease-in-out 2}
+#youtubeEventToast.show{opacity:1;transform:translateY(0)}
+@keyframes youtubeReminderShake{
+ 0%,100%{transform:translate(-50%,0) rotate(0)}
+ 18%{transform:translate(calc(-50% - 9px),0) rotate(-1.2deg)}
+ 36%{transform:translate(calc(-50% + 9px),0) rotate(1.2deg)}
+ 54%{transform:translate(calc(-50% - 6px),0) rotate(-.8deg)}
+ 72%{transform:translate(calc(-50% + 6px),0) rotate(.8deg)}
+}
+@media(prefers-reduced-motion:reduce){#youtubeReminderToast.show{animation:none}}
+#youtubeWidget{position:fixed;z-index:12;left:auto;right:14px;top:auto;bottom:14px;width:min(var(--yt-player-width,400px),calc(100vw - 20px));max-height:calc(100vh - 20px);overflow:auto;background:#0d1c2df5;border:1px solid #355774;border-radius:14px;box-shadow:0 18px 55px #000a;color:var(--text);overscroll-behavior:contain}
+#youtubeWidget.minimized{width:auto;overflow:visible;background:transparent;border:0;box-shadow:none}
+.youtube-dragbar{display:flex;align-items:center;gap:8px;padding:9px 10px;cursor:move;touch-action:none;user-select:none;background:#13263b;border-radius:14px 14px 0 0}
+.youtube-dragbar strong{font-size:13px;flex:1}.youtube-dragbar span{font-size:11px;color:var(--muted)}
+.youtube-body{padding:0 10px 10px}.youtube-subtitle{margin:7px 0;color:var(--muted);font-size:11px;line-height:1.4}
+.youtube-player-wrap{position:relative;width:100%;aspect-ratio:16/9;background:#050a10;border-radius:9px;overflow:hidden}
+#youtubePlayer{position:absolute;inset:0;width:100%;height:100%}
+.youtube-new{position:absolute;z-index:2;left:7px;top:7px;padding:4px 7px;border-radius:999px;background:#e54862;color:#fff;font-size:11px;font-weight:900;pointer-events:none}
+.youtube-controls{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.youtube-controls button,.youtube-controls a,.youtube-restore{border:1px solid #355774;border-radius:8px;padding:6px 8px;background:#19344e;color:#eef7ff;font:700 11px system-ui;text-decoration:none;cursor:pointer}
+.youtube-size-controls{display:flex;gap:5px;margin-left:auto}.youtube-size-controls button.active{border-color:#35d6ff;color:#35d6ff}
+.youtube-copy{margin:8px 0 0;font-size:10px;line-height:1.5;color:#c9d9e7}.youtube-copy p{margin:3px 0}
+.youtube-status{font-size:11px;color:var(--muted);padding:5px 0}.youtube-status.error{color:#ff9aaa}
+.youtube-restore{display:none;background:#19344ef5;box-shadow:0 8px 25px #0008}
+#youtubeWidget.minimized .youtube-restore{display:block}#youtubeWidget.minimized .youtube-shell{display:none}
 #mobileControls{display:none;flex:none;height:190px;background:#0b1827;border-top:1px solid #29445e;padding:10px;gap:12px;touch-action:none}
 .aim-pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(3,52px);gap:5px;align-content:center;justify-content:center;flex:1}
 .mobile-btn{border:1px solid #41627d;background:#17314a;color:#fff;border-radius:12px;font-size:22px;font-weight:900;box-shadow:inset 0 -4px 0 #091522}
@@ -73,11 +105,17 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
 .flash{animation:flash .18s}
 @keyframes flash{50%{filter:brightness(2)}}
 @media(max-width:720px){
+ .logo-row{gap:4px}.logo h1{font-size:clamp(28px,9vw,34px)}.channel-banner{width:max(54px,17vw);border-radius:7px}
  #topHud{height:142px;grid-template-columns:90px 1fr 100px;gap:6px;padding:6px}
  .hud-box{padding:5px}.hud-value{font-size:17px}.hud-label{font-size:10px}
  #questionText{font-size:14px}.actions{grid-template-columns:1fr 1fr}.actions .primary{grid-column:1/-1}
  #mobileControls{display:flex}
  #arenaWrap{min-height:260px}
+ #youtubeWidget{--yt-player-width:240px;max-height:55vh}
+ .youtube-copy{display:none}.youtube-dragbar span{display:none}
+ #youtubeReminderToast,#youtubeEventToast{font-size:12px}
+ #youtubeReminderToast{top:8px}
+ #youtubeEventToast{right:8px;bottom:58px}
 }
 @media(max-height:700px) and (max-width:720px){#topHud{height:118px}#mobileControls{height:155px}.aim-pad{grid-template-columns:repeat(3,55px);grid-template-rows:repeat(3,40px)}#fireBtn{width:105px}}
 </style>
@@ -85,11 +123,23 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
 <body>
 <section id="menuScreen" class="screen">
  <div class="menu-wrap">
-  <div class="logo"><h1>STUDY AIM</h1><p>勉強しながらエイム練習。15問のクリアタイムに挑戦！</p></div>
+  <div class="logo">
+   <div class="logo-row">
+    <a class="channel-banner" href="https://youtube.com/channel/UC95aAK2efSZvenj0l9ZD-dQ" target="_blank" rel="noopener noreferrer" aria-label="くるみちゃんねるをYouTubeで開く"><img src="./kurumich.png" alt="くるみちゃんねる"></a>
+    <h1>STUDY AIM</h1>
+    <a class="channel-banner" href="https://youtube.com/channel/UC95aAK2efSZvenj0l9ZD-dQ" target="_blank" rel="noopener noreferrer" aria-label="くるみちゃんねるをYouTubeで開く"><img src="./kurumich.png" alt="くるみちゃんねる"></a>
+   </div>
+   <p>勉強しながらエイム練習。15問のクリアタイムに挑戦！</p>
+  </div>
+  <div id="dataStatus" class="panel small data-status warn"><b>問題データ：</b> 読み込み中...</div>
+  <div id="fileFallbackPanel" class="panel small hidden">
+   <b>Windowsローカル起動：</b> このHTMLは問題データを外部JSONから読みます。Chrome/EdgeでHTMLを直接ダブルクリック（file://）すると、ブラウザの安全制限により同一フォルダのJSONを自動読込できません。
+   <p>同じフォルダの <b>start_study_aim.bat</b> をダブルクリックしてください。ローカルWebサーバーを自動起動し、このHTMLと同じフォルダのJSON 2個をそのまま読み込みます。GitHub Pages等では何もせず自動読込します。</p>
+  </div>
   <div class="panel">
    <h2>① 出題する学年・学期（複数選択可）</h2>
    <div class="grade-grid" id="gradeChecks"></div>
-   <p class="small">学年・学期の単独選択と複数選択は、別々の記録として保存されます。「(応用)」は標準範囲を土台に、複数の知識や手順を組み合わせる問題です。</p>
+   <p class="small">学年・学期の単独選択と複数選択は、別々の記録として保存されます。「(応用)」は学校応用＋塾標準＋塾難関を含みます。</p>
   </div>
   <div class="panel">
    <h2>② 教科</h2>
@@ -109,6 +159,32 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
   </div>
  </div>
 </section>
+
+<aside id="youtubeWidget" aria-label="YouTube動画プレイヤー">
+ <button id="youtubeRestoreBtn" class="youtube-restore" type="button">📺 動画を表示</button>
+ <div class="youtube-shell">
+  <div id="youtubeDragHandle" class="youtube-dragbar"><strong>🎧 動画を流しながらAIM練習！</strong><span>ここをドラッグ</span></div>
+  <div class="youtube-body">
+   <p class="youtube-subtitle">見てもらえると、くるみちゃんねるの励みになります！</p>
+   <div class="youtube-player-wrap"><span id="youtubeNewBadge" class="youtube-new hidden">🆕 NEW</span><div id="youtubePlayer"></div></div>
+   <div id="youtubeStatus" class="youtube-status">動画を読み込んでいます…</div>
+   <div class="youtube-controls">
+    <button id="youtubeNextBtn" type="button">🔄 別の動画</button>
+    <a id="youtubeOpenLink" href="#" target="_blank" rel="noopener noreferrer">💬 要望を書く ↗</a>
+    <div class="youtube-size-controls" aria-label="動画サイズ">
+     <button type="button" data-youtube-size="minimized">▁ 最小</button><button type="button" data-youtube-size="small">小</button><button type="button" data-youtube-size="medium">中</button><button type="button" data-youtube-size="large">大</button>
+    </div>
+   </div>
+   <div class="youtube-copy">
+    <p>❤️ 気に入ったらチャンネル登録もお願いします！</p>
+    <p>🔴 配信見かけたら「AIM練習勢」ってコメントして！<br>見つけたらめっちゃ喜びます😂</p>
+    <p>💬 要望めっちゃ募集中！<br>「こんなの追加して！」って気軽にコメントしてね！<br>できそうなのはどんどん追加します！</p>
+   </div>
+  </div>
+ </div>
+</aside>
+<div id="youtubeReminderToast" role="status" aria-live="polite"></div>
+<div id="youtubeEventToast" role="status" aria-live="polite"></div>
 
 <section id="gameScreen" class="screen hidden">
  <header id="topHud">
@@ -169,126 +245,34 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
  <div class="modal"><h2 style="text-align:center">15問クリア！</h2><div id="resultTime" class="result-big"></div><div class="result-grid"><div class="result-item">正解数<b id="resultCorrect"></b></div><div class="result-item">命中率<b id="resultAccuracy"></b></div><div class="result-item">ミス射撃<b id="resultMisses"></b></div></div><p id="recordMessage" style="text-align:center"></p><div class="actions"><button id="retryBtn" class="primary">同じ設定でもう一度</button><button id="menuBtn" class="secondary">メニューへ</button></div></div>
 </div>
 
+<script src="./youtube-config.js"></script>
+<script src="./youtube-player.js"></script>
 <script>
 'use strict';
 
 /* =========================================================
-   問題データ
-   grade: g4/g5/g6/j1/j2/j3
-   subject: 国語/算数・数学/理科/社会/英語
-   choices: 2～4個、answer: 正解の添字（0始まり）
-   新しい問題は、この配列へ同じ形式で追加するだけです。
+   外部問題データ（v9 / 同一ディレクトリJSON）
+   HTMLと同じフォルダに次の2ファイルを置きます。
+   - study_aim_questions_all_reviewed_v8.json
+   - study_aim_validation_all_v8.json
    ========================================================= */
-const QUESTIONS = [
-// 小4 国語
-{grade:'g4',subject:'国語',unit:'漢字・語句',q:'「協力」の正しい読み方は？',choices:['きょうりょく','きょりょう','きょうりき'],answer:0,ex:'「協力」は「きょうりょく」と読み、力を合わせることです。'},
-{grade:'g4',subject:'国語',unit:'主語・述語',q:'「弟が 公園で 遊ぶ」の述語は？',choices:['弟が','公園で','遊ぶ'],answer:2,ex:'述語は、主語が「どうする・どんなだ・何だ」を表す部分です。'},
-{grade:'g4',subject:'国語',unit:'ことわざ',q:'「石の上にも三年」に近い意味は？',choices:['すぐにあきらめる','辛抱強く続ける','急いで行動する'],answer:1,ex:'つらくても長く辛抱すれば成果が出る、という意味です。'},
-// 小4 算数
-{grade:'g4',subject:'算数・数学',unit:'わり算',q:'864 ÷ 8 は？',choices:['98','108','118','128'],answer:1,ex:'800÷8=100、64÷8=8なので、答えは108です。'},
-{grade:'g4',subject:'算数・数学',unit:'角度',q:'直角の角度は？',choices:['45°','90°','180°'],answer:1,ex:'直角は90度です。'},
-{grade:'g4',subject:'算数・数学',unit:'小数',q:'0.7 + 0.35 は？',choices:['0.42','0.95','1.05','1.35'],answer:2,ex:'小数点をそろえて計算すると1.05です。'},
-// 小4 理科
-{grade:'g4',subject:'理科',unit:'季節と生物',q:'春に多く見られる変化は？',choices:['多くの植物が芽を出す','池の水が必ず凍る','日が最も短くなる'],answer:0,ex:'春は気温が上がり、多くの植物が芽を出して成長を始めます。'},
-{grade:'g4',subject:'理科',unit:'電気',q:'乾電池2個を直列につなぐと、豆電球は一般にどうなる？',choices:['明るくなる','暗くなる','必ず消える'],answer:0,ex:'直列つなぎでは電圧が大きくなり、一般に豆電球は明るくなります。'},
-{grade:'g4',subject:'理科',unit:'水の変化',q:'水がこおり始める温度は、およそ何℃？',choices:['0℃','50℃','100℃'],answer:0,ex:'標準的な気圧では、水はおよそ0℃でこおり始めます。'},
-// 小4 社会
-{grade:'g4',subject:'社会',unit:'都道府県',q:'日本の都道府県はいくつ？',choices:['43','45','47','49'],answer:2,ex:'日本には1都1道2府43県、合わせて47都道府県があります。'},
-{grade:'g4',subject:'社会',unit:'地図',q:'地図で一般に上はどの方角？',choices:['北','南','東','西'],answer:0,ex:'一般的な地図では上が北です。'},
-{grade:'g4',subject:'社会',unit:'水道',q:'家庭に水を届ける前に、水をきれいにする施設は？',choices:['浄水場','消防署','発電所'],answer:0,ex:'浄水場では、川などの水を安全に使えるように処理します。'},
-// 小4 英語
-{grade:'g4',subject:'英語',unit:'あいさつ',q:'「おはよう」に当たる英語は？',choices:['Good morning.','Good night.','See you.'],answer:0,ex:'朝のあいさつは “Good morning.” です。'},
-{grade:'g4',subject:'英語',unit:'曜日',q:'Monday の意味は？',choices:['月曜日','水曜日','日曜日'],answer:0,ex:'Monday は月曜日です。'},
-{grade:'g4',subject:'英語',unit:'好きな物',q:'「私はりんごが好きです」は？',choices:['I like apples.','I am apples.','I can apples.'],answer:0,ex:'「～が好き」は “I like ～.” を使います。'},
-
-// 小5
-{grade:'g5',subject:'国語',unit:'敬語',q:'「先生が来る」の尊敬語として適切なのは？',choices:['先生が参る','先生がいらっしゃる','先生がおる'],answer:1,ex:'相手の動作を高める尊敬語では「いらっしゃる」を使います。'},
-{grade:'g5',subject:'国語',unit:'熟語',q:'「原因」と反対に近い意味の言葉は？',choices:['理由','結果','目的'],answer:1,ex:'原因によって起こったものが結果です。'},
-{grade:'g5',subject:'国語',unit:'文章構成',q:'意見を支えるために示すものは？',choices:['根拠','題名だけ','文字数'],answer:0,ex:'説得力のある文章では、意見と、それを支える根拠を示します。'},
-{grade:'g5',subject:'算数・数学',unit:'割合',q:'200円の25%は？',choices:['25円','40円','50円','75円'],answer:2,ex:'200×0.25=50なので50円です。'},
-{grade:'g5',subject:'算数・数学',unit:'体積',q:'縦3cm、横4cm、高さ5cmの直方体の体積は？',choices:['12㎤','20㎤','47㎤','60㎤'],answer:3,ex:'直方体の体積は縦×横×高さ。3×4×5=60㎤です。'},
-{grade:'g5',subject:'算数・数学',unit:'分数',q:'1/3 + 1/6 は？',choices:['1/9','1/2','2/9','2/3'],answer:1,ex:'1/3を2/6に直すと、2/6+1/6=3/6=1/2です。'},
-{grade:'g5',subject:'理科',unit:'植物の発芽',q:'植物の種子の発芽に通常必要でないものは？',choices:['水','適当な温度','空気','日光'],answer:3,ex:'発芽には水・適当な温度・空気が必要です。日光は発芽後の成長で重要です。'},
-{grade:'g5',subject:'理科',unit:'天気',q:'雲の量が増え、気圧が下がると、天気は一般にどうなりやすい？',choices:['悪くなりやすい','必ず晴れる','変化しない'],answer:0,ex:'低気圧が近づくと雲が増え、雨など天気が崩れやすくなります。'},
-{grade:'g5',subject:'理科',unit:'振り子',q:'振り子が1往復する時間を変えやすい条件は？',choices:['おもりの色','糸の長さ','おもりの材質だけ'],answer:1,ex:'振り子の1往復の時間は、主に糸の長さで変わります。'},
-{grade:'g5',subject:'社会',unit:'国土',q:'日本で最も面積が大きい都道府県は？',choices:['東京都','北海道','長野県','岩手県'],answer:1,ex:'日本で最も面積が大きい都道府県は北海道です。'},
-{grade:'g5',subject:'社会',unit:'農業',q:'米作りで、苗を水田に植える作業は？',choices:['田植え','稲刈り','脱穀'],answer:0,ex:'育てた苗を水田に植える作業を田植えといいます。'},
-{grade:'g5',subject:'社会',unit:'工業',q:'原料を加工して製品を作る産業は？',choices:['農業','漁業','工業'],answer:2,ex:'原料を加工し、さまざまな製品を作る産業が工業です。'},
-{grade:'g5',subject:'英語',unit:'できること',q:'「私は泳ぐことができます」は？',choices:['I can swim.','I am swim.','I like swim can.'],answer:0,ex:'「～できる」は can + 動詞の原形です。'},
-{grade:'g5',subject:'英語',unit:'時刻',q:'It is seven thirty. は何時？',choices:['7時13分','7時30分','3時7分'],answer:1,ex:'seven thirty は7時30分です。'},
-{grade:'g5',subject:'英語',unit:'道案内',q:'「右に曲がって」は？',choices:['Turn right.','Go back left.','Stop right.'],answer:0,ex:'「右に曲がる」は turn right です。'},
-
-// 小6
-{grade:'g6',subject:'国語',unit:'文法',q:'「静かな町」の「静かな」の品詞は？',choices:['名詞','動詞','形容動詞','接続詞'],answer:2,ex:'「静かだ」と言い切れるため、形容動詞です。'},
-{grade:'g6',subject:'国語',unit:'慣用句',q:'「胸をなで下ろす」の意味は？',choices:['安心する','怒る','自慢する'],answer:0,ex:'心配がなくなり、ほっと安心することを表します。'},
-{grade:'g6',subject:'国語',unit:'読解',q:'筆者の主張を見つけるとき、特に注目するものは？',choices:['理由や結論を示す言葉','漢字の画数','行の長さ'],answer:0,ex:'「なぜなら」「つまり」など、理由や結論を示す言葉が手がかりになります。'},
-{grade:'g6',subject:'算数・数学',unit:'比',q:'比 6:9 を最も簡単にすると？',choices:['2:3','3:2','6:3','1:9'],answer:0,ex:'6と9を最大公約数3で割ると2:3です。'},
-{grade:'g6',subject:'算数・数学',unit:'速さ',q:'120kmを2時間で進む速さは？',choices:['40km/h','60km/h','120km/h','240km/h'],answer:1,ex:'速さ=道のり÷時間。120÷2=60km/hです。'},
-{grade:'g6',subject:'算数・数学',unit:'円',q:'半径5cmの円の直径は？',choices:['2.5cm','5cm','10cm','25cm'],answer:2,ex:'直径は半径の2倍なので10cmです。'},
-{grade:'g6',subject:'理科',unit:'呼吸',q:'人が呼吸で体内に多く取り入れる気体は？',choices:['酸素','二酸化炭素','水素'],answer:0,ex:'人は酸素を取り入れ、二酸化炭素を多く含む息を出します。'},
-{grade:'g6',subject:'理科',unit:'てこ',q:'てこで小さい力で物を動かすには？',choices:['支点から力点を遠くする','力点を支点に近づける','作用点を遠くするだけ'],answer:0,ex:'支点から力点までの距離を長くすると、小さい力で動かしやすくなります。'},
-{grade:'g6',subject:'理科',unit:'月',q:'月が光って見える理由は？',choices:['月自身が燃えている','太陽の光を反射している','地球の光だけを出す'],answer:1,ex:'月は太陽の光を反射して光って見えます。'},
-{grade:'g6',subject:'社会',unit:'日本史',q:'日本国憲法が施行された年は？',choices:['1945年','1947年','1950年','1964年'],answer:1,ex:'日本国憲法は1947年5月3日に施行されました。'},
-{grade:'g6',subject:'社会',unit:'政治',q:'国会・内閣・裁判所が権力を分ける仕組みは？',choices:['三権分立','地方自治','直接民主制'],answer:0,ex:'立法・行政・司法を分け、互いに抑制する仕組みが三権分立です。'},
-{grade:'g6',subject:'社会',unit:'歴史',q:'鎌倉幕府を開いた人物は？',choices:['聖徳太子','源頼朝','徳川家康','豊臣秀吉'],answer:1,ex:'源頼朝が鎌倉に武士の政権を築きました。'},
-{grade:'g6',subject:'英語',unit:'過去',q:'「私は昨日サッカーをしました」は？',choices:['I play soccer yesterday.','I played soccer yesterday.','I playing soccer yesterday.'],answer:1,ex:'過去のことなので play を played にします。'},
-{grade:'g6',subject:'英語',unit:'疑問文',q:'「あなたは何を食べたいですか」は？',choices:['What do you want to eat?','Where are you eat?','Who want eat?'],answer:0,ex:'「何を～したい」は What do you want to ～? です。'},
-{grade:'g6',subject:'英語',unit:'紹介',q:'He is good at cooking. の意味は？',choices:['彼は料理が得意です','彼は料理が嫌いです','彼は料理を食べません'],answer:0,ex:'be good at ～ は「～が得意」です。'},
-
-// 中1
-{grade:'j1',subject:'国語',unit:'文法',q:'「とても美しい」の「とても」の品詞は？',choices:['副詞','名詞','助動詞','接続詞'],answer:0,ex:'「とても」は「美しい」を詳しくする副詞です。'},
-{grade:'j1',subject:'国語',unit:'表現技法',q:'「雪のように白い」で使われている表現技法は？',choices:['直喩','擬人法','反復法'],answer:0,ex:'「ように」を使ってたとえる表現は直喩です。'},
-{grade:'j1',subject:'国語',unit:'古典',q:'古文の「いと」の意味として一般的なものは？',choices:['とても','少しも','いつも'],answer:0,ex:'古文の「いと」は「とても・たいへん」の意味で使われます。'},
-{grade:'j1',subject:'算数・数学',unit:'正負の数',q:'(-4) + 7 は？',choices:['-11','-3','3','11'],answer:2,ex:'数直線で-4から右へ7進むので3です。'},
-{grade:'j1',subject:'算数・数学',unit:'文字式',q:'a×5 を文字式で表すと？',choices:['a+5','5a','a5','a÷5'],answer:1,ex:'文字式では数を文字の前に書き、かける記号を省略して5aとします。'},
-{grade:'j1',subject:'算数・数学',unit:'方程式',q:'3x=18 のとき x は？',choices:['3','6','15','54'],answer:1,ex:'両辺を3で割るとx=6です。'},
-{grade:'j1',subject:'理科',unit:'植物',q:'光合成で植物が取り入れる気体は？',choices:['酸素','二酸化炭素','窒素だけ'],answer:1,ex:'植物は光合成で二酸化炭素と水から養分を作り、酸素を放出します。'},
-{grade:'j1',subject:'理科',unit:'物質',q:'水に溶けた物質を取り出すため、水を蒸発させる操作は？',choices:['蒸発乾固','ろ過','蒸留だけ'],answer:0,ex:'溶液から水を蒸発させ、溶質を取り出す操作を蒸発乾固といいます。'},
-{grade:'j1',subject:'理科',unit:'光',q:'鏡で光がはね返る現象は？',choices:['反射','屈折','分解'],answer:0,ex:'光が物体の表面ではね返る現象を反射といいます。'},
-{grade:'j1',subject:'社会',unit:'地理',q:'緯度0度の線は？',choices:['赤道','本初子午線','日付変更線'],answer:0,ex:'緯度0度は赤道です。'},
-{grade:'j1',subject:'社会',unit:'歴史',q:'邪馬台国の女王として知られる人物は？',choices:['卑弥呼','紫式部','推古天皇'],answer:0,ex:'中国の歴史書には、邪馬台国の女王として卑弥呼が記されています。'},
-{grade:'j1',subject:'社会',unit:'地理',q:'世界で最も面積が大きい国は？',choices:['中国','カナダ','ロシア','アメリカ'],answer:2,ex:'世界で最も面積が大きい国はロシアです。'},
-{grade:'j1',subject:'英語',unit:'be動詞',q:'She ___ a student. に入る語は？',choices:['am','is','are','be'],answer:1,ex:'主語がSheの現在形なのでbe動詞はisです。'},
-{grade:'j1',subject:'英語',unit:'一般動詞',q:'He ___ tennis every Sunday. に入る語は？',choices:['play','plays','playing'],answer:1,ex:'主語が三人称単数のHeなので、現在形の動詞にsを付けます。'},
-{grade:'j1',subject:'英語',unit:'疑問詞',q:'「どこ」をたずねる疑問詞は？',choices:['When','Where','Who','Why'],answer:1,ex:'場所をたずねる疑問詞はWhereです。'},
-
-// 中2
-{grade:'j2',subject:'国語',unit:'品詞',q:'「読ませる」の「せる」は何？',choices:['助動詞','副詞','接続詞','名詞'],answer:0,ex:'「せる」は使役の意味を加える助動詞です。'},
-{grade:'j2',subject:'国語',unit:'敬語',q:'「私が先生の所へ行く」の謙譲語は？',choices:['私が先生の所へ参る','私が先生の所へいらっしゃる','私が先生の所へおいでになる'],answer:0,ex:'自分の動作をへりくだる謙譲語では「参る」を使います。'},
-{grade:'j2',subject:'国語',unit:'論説文',q:'反対意見を示した上で自分の主張を強める構成は？',choices:['反論を踏まえる構成','時間順だけの構成','箇条書きだけ'],answer:0,ex:'想定される反論を示して答えると、主張の説得力を高められます。'},
-{grade:'j2',subject:'算数・数学',unit:'連立方程式',q:'x+y=7、x-y=1 の解は？',choices:['x=3,y=4','x=4,y=3','x=6,y=1','x=7,y=0'],answer:1,ex:'2式を足すと2x=8でx=4。x+y=7よりy=3です。'},
-{grade:'j2',subject:'算数・数学',unit:'一次関数',q:'y=3x+2 の傾きは？',choices:['2','3','5','x'],answer:1,ex:'y=ax+bのaが傾きなので3です。'},
-{grade:'j2',subject:'算数・数学',unit:'確率',q:'公平なコインを1回投げ、表が出る確率は？',choices:['0','1/4','1/2','1'],answer:2,ex:'表と裏の2通りが同様に確からしいので1/2です。'},
-{grade:'j2',subject:'理科',unit:'化学変化',q:'物質が酸素と結びつく変化は？',choices:['酸化','還元だけ','中和'],answer:0,ex:'物質が酸素と結びつく化学変化を酸化といいます。'},
-{grade:'j2',subject:'理科',unit:'電流',q:'電圧をV、電流をI、抵抗をRとするとオームの法則は？',choices:['V=IR','I=VR','R=V+I'],answer:0,ex:'オームの法則はV=IRです。'},
-{grade:'j2',subject:'理科',unit:'気象',q:'空気が上昇すると、一般に温度はどうなる？',choices:['下がる','上がる','必ず一定'],answer:0,ex:'上昇した空気は膨張し、温度が下がって雲ができやすくなります。'},
-{grade:'j2',subject:'社会',unit:'歴史',q:'江戸幕府を開いた人物は？',choices:['徳川家康','織田信長','足利尊氏','源義経'],answer:0,ex:'徳川家康が1603年に征夷大将軍となり、江戸幕府を開きました。'},
-{grade:'j2',subject:'社会',unit:'地理',q:'EUは主にどの地域の国々による連合？',choices:['ヨーロッパ','南アメリカ','東南アジア','アフリカ'],answer:0,ex:'EUはヨーロッパの国々を中心とする地域統合です。'},
-{grade:'j2',subject:'社会',unit:'歴史',q:'明治政府が藩を廃止して県を置いた政策は？',choices:['廃藩置県','版籍奉還','地租改正'],answer:0,ex:'1871年、藩を廃止して府県を置く廃藩置県が行われました。'},
-{grade:'j2',subject:'英語',unit:'過去進行形',q:'I ___ studying at eight. に入る語は？',choices:['am','was','were','be'],answer:1,ex:'主語Iの過去進行形はwas + 動詞ingです。'},
-{grade:'j2',subject:'英語',unit:'比較',q:'Tom is ___ than Ken.（背が高い）',choices:['tall','taller','tallest','more tall'],answer:1,ex:'2人を比べる比較級なのでtallerです。'},
-{grade:'j2',subject:'英語',unit:'不定詞',q:'I want to play soccer. の to play は？',choices:['不定詞','現在進行形','受動態'],answer:0,ex:'to + 動詞の原形は不定詞です。ここでは「サッカーをしたい」です。'},
-
-// 中3
-{grade:'j3',subject:'国語',unit:'文法',q:'「雨が降ったので、試合は中止だ」の「ので」の働きは？',choices:['原因・理由を示す','逆接を示す','並列を示す'],answer:0,ex:'「ので」は前の内容を原因・理由として後につなげます。'},
-{grade:'j3',subject:'国語',unit:'和歌',q:'短歌の基本的な音数は？',choices:['5・7・5','5・7・5・7・7','7・7・7・5'],answer:1,ex:'短歌は基本的に5・7・5・7・7の31音です。'},
-{grade:'j3',subject:'国語',unit:'文章表現',q:'資料を引用するときに必要なことは？',choices:['出典を示す','文章を変えず無断使用する','自分の文として書く'],answer:0,ex:'引用部分を明確にし、著者・資料名などの出典を示します。'},
-{grade:'j3',subject:'算数・数学',unit:'平方根',q:'√49 は？',choices:['6','7','14','49'],answer:1,ex:'7×7=49なので√49=7です。'},
-{grade:'j3',subject:'算数・数学',unit:'二次方程式',q:'x²=25 の解は？',choices:['x=5だけ','x=-5だけ','x=±5','x=25'],answer:2,ex:'5²も(-5)²も25なので、解はx=±5です。'},
-{grade:'j3',subject:'算数・数学',unit:'相似',q:'相似比が2:3の図形で、面積比は？',choices:['2:3','4:9','8:27','3:2'],answer:1,ex:'面積比は相似比の2乗なので2²:3²=4:9です。'},
-{grade:'j3',subject:'理科',unit:'遺伝',q:'生物の形質を伝えるもとになるものは？',choices:['遺伝子','血液型だけ','食べ物だけ'],answer:0,ex:'形質に関する情報は遺伝子によって親から子へ伝わります。'},
-{grade:'j3',subject:'理科',unit:'イオン',q:'酸性の水溶液に共通して存在するイオンは？',choices:['水素イオン','水酸化物イオン','ナトリウムイオンだけ'],answer:0,ex:'酸性の水溶液には水素イオンH⁺が存在します。'},
-{grade:'j3',subject:'理科',unit:'運動',q:'速さが一定の直線運動を何という？',choices:['等速直線運動','自由落下だけ','円運動'],answer:0,ex:'一直線上を一定の速さで進む運動を等速直線運動といいます。'},
-{grade:'j3',subject:'社会',unit:'公民',q:'法律を制定する国の機関は？',choices:['国会','内閣','最高裁判所'],answer:0,ex:'国会は国権の最高機関であり、国の唯一の立法機関です。'},
-{grade:'j3',subject:'社会',unit:'経済',q:'需要が増え、供給が変わらないとき、価格は一般に？',choices:['上がりやすい','下がりやすい','必ず0円になる'],answer:0,ex:'需要が供給に対して増えると、一般に価格は上がりやすくなります。'},
-{grade:'j3',subject:'社会',unit:'国際社会',q:'国際連合の本部がある都市は？',choices:['ニューヨーク','東京','ロンドン','シドニー'],answer:0,ex:'国際連合本部はアメリカ合衆国のニューヨークにあります。'},
-{grade:'j3',subject:'英語',unit:'現在完了',q:'I have lived here ___ three years. に入る語は？',choices:['since','for','at','by'],answer:1,ex:'期間「3年間」を表すのでforを使います。'},
-{grade:'j3',subject:'英語',unit:'受動態',q:'This book was written by Soseki. の意味は？',choices:['この本は漱石によって書かれた','漱石はこの本を読む','この本が漱石を書いた'],answer:0,ex:'be動詞 + 過去分詞は受動態で、「～される」を表します。'},
-{grade:'j3',subject:'英語',unit:'関係代名詞',q:'The boy ___ is running is my brother. に入る語は？',choices:['who','where','when','what'],answer:0,ex:'先行詞が人で、後ろの文の主語になるためwhoを使います。'}
-];
+const QUESTION_DATA_FILE='./study_aim_questions_all_reviewed_v8.json';
+const VALIDATION_DATA_FILE='./study_aim_validation_all_v8.json';
+let QUESTIONS=[];
+let QUESTION_METADATA=null;
+let VALIDATION_REPORT=null;
+let questionDataReady=false;
 
 const GRADES={g4:'小学4年',g5:'小学5年',g6:'小学6年',j1:'中学1年',j2:'中学2年',j3:'中学3年'};
 const TERMS={1:'1学期',2:'2学期',3:'3学期'};
+const SUBJECTS=['国語','算数・数学','理科','社会','英語'];
+const TIER_LABELS={
+ school_core:'学校基本',
+ school_coverage:'学校細目',
+ school_application:'学校応用',
+ cram_standard:'塾標準',
+ cram_challenge:'塾難関'
+};
 const GRADE_TERMS={};
 Object.entries(GRADES).forEach(([g,label])=>{
  [1,2,3].forEach(t=>{
@@ -296,439 +280,113 @@ Object.entries(GRADES).forEach(([g,label])=>{
   GRADE_TERMS[`${g}_t${t}_adv`]={label:`${label}${t}学期(応用)`,html:`<span class="grade-label">${label}<br>${t}学期<br>(応用)</span>`,difficulty:'advanced'};
  });
 });
-// 初期問題は登録順に1・2・3学期へ割り当て、通常問題として扱います。
-const termCounters={};
-QUESTIONS.forEach(q=>{if(!q.term){const k=`${q.grade}__${q.subject}`;termCounters[k]=(termCounters[k]||0)+1;q.term=((termCounters[k]-1)%3)+1;}q.difficulty=q.difficulty||'normal';});
 
-/* =========================================================
-   カリキュラム拡張問題
-   数値を毎回変える生成問題と、各教科の主要単元問題を追加します。
-   「(応用)」は公立学校の標準範囲を土台に、複数段階の思考を要する問題です。
-   ========================================================= */
-function addQuestion(grade,term,subject,unit,q,choices,answer,ex,difficulty='normal',generatedMath=false){
- QUESTIONS.push({grade,term,subject,unit,q,choices,answer,ex,difficulty,generatedMath});
+function setDataStatus(message,state='warn'){
+ const el=document.getElementById('dataStatus');
+ if(!el)return;
+ el.className=`panel small data-status ${state}`;
+ el.innerHTML=`<b>問題データ：</b> ${message}`;
 }
-function makeChoices(correct,wrong){
- const values=[String(correct),...wrong.map(String)].filter((v,i,a)=>a.indexOf(v)===i).slice(0,4);
- while(values.length<4)values.push(String(Number(correct)+values.length+1));
- const shuffled=values.sort(()=>Math.random()-.5);
- return {choices:shuffled,answer:shuffled.indexOf(String(correct))};
-}
-function addCalc(grade,term,unit,text,correct,wrong,ex,difficulty='normal'){
- const c=makeChoices(correct,wrong);addQuestion(grade,term,'算数・数学',unit,text,c.choices,c.answer,ex,difficulty,true);
-}
-function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
-function buildMathQuestions(){
- const grades=['g4','g5','g6','j1','j2','j3'];
- for(const g of grades)for(let t=1;t<=3;t++)for(const diff of ['normal','advanced']){
-  const adv=diff==='advanced';
-  for(let i=0;i<42;i++){
-   const n=i+randInt(0,500);
-   if(g==='g4'){
-    const a=120+t*35+n*7,b=6+(n%7),c=3+(n%5);
-    if(!adv){
-     if(n%4===0)addCalc(g,t,'整数の計算',`${a}＋${b*13} は？`,a+b*13,[a+b*13+10,a+b*13-10,a+b*12],`位をそろえて足すと${a+b*13}です。`,diff);
-     else if(n%4===1)addCalc(g,t,'わり算',`${b*12}÷${b} は？`,12,[b,10,14],`${b*12}を${b}等分すると12です。`,diff);
-     else if(n%4===2)addCalc(g,t,'小数',`${(c/10).toFixed(1)}＋${(b/10).toFixed(1)} は？`,((c+b)/10).toFixed(1),[((c+b+1)/10).toFixed(1),((c+b-1)/10).toFixed(1),(c*b/10).toFixed(1)],'小数点をそろえて計算します。',diff);
-     else addCalc(g,t,'角度・図形',`三角形の2つの角が${40+n%20}°と${60+n%15}°です。残りの角は？`,180-(40+n%20)-(60+n%15),[90,100,120],'三角形の内角の和は180°です。',diff);
-    }else{
-     const total=(a+b*10)*c;
-     if(n%2===0)addCalc(g,t,'複合計算',`1箱${a+b}円の商品を${c}箱買い、${b*5}円引きされました。代金は？`,(a+b)*c-b*5,[(a+b)*c,(a+b)*(c-1),a+b*c-b*5],'先に箱数分を掛け、最後に値引きを引きます。',diff);
-     else addCalc(g,t,'規則性',`3、7、11、15…と増える数列の第${c+3}項は？`,3+4*(c+2),[3+4*(c+3),7+4*(c+2),4*(c+3)],'最初が3で、1項進むごとに4増えます。',diff);
-    }
-   }else if(g==='g5'){
-    const a=80+n*5,b=4+(n%8),c=2+(n%6);
-    if(!adv){
-     if(n%4===0)addCalc(g,t,'割合',`${a}の${c*10}%は？`,a*c/10,[a*c,a/c,a-c],`${a}×${c/10}で求めます。`,diff);
-     else if(n%4===1)addCalc(g,t,'分数',`${c}/8＋${8-c}/8 は？`,1,[0,2,8],'分母が同じなので分子を足し、8/8=1です。',diff);
-     else if(n%4===2)addCalc(g,t,'体積',`縦${b}cm、横${c}cm、高さ${c+2}cmの直方体の体積は？`,b*c*(c+2),[b+c+c+2,b*c,b*(c+2)],'縦×横×高さで求めます。',diff);
-     else addCalc(g,t,'平均',`${a}, ${a+10}, ${a+20} の平均は？`,a+10,[a,a+15,a+20],'合計を個数3で割ります。',diff);
-    }else{
-     const price=500+n*20,rate=10+(n%4)*5;
-     if(n%2===0)addCalc(g,t,'割合の応用',`${price}円の商品を${rate}%引きで買います。支払額は？`,price*(100-rate)/100,[price*rate/100,price-rate,price*(100+rate)/100],'元の価格×（1−割引率）で求めます。',diff);
-     else addCalc(g,t,'速さの応用',`時速${b*10}kmで${c}時間進み、その後${b*5}km進みました。合計距離は？`,b*10*c+b*5,[b*10+c+b*5,b*10*c,b*15*c],'速さ×時間で最初の距離を求め、後の距離を足します。',diff);
-    }
-   }else if(g==='g6'){
-    const a=6+(n%8),b=3+(n%6),c=2+(n%5);
-    if(!adv){
-     if(n%4===0)addCalc(g,t,'比',`比 ${a*2}:${b*2} を簡単にすると？`,`${a}:${b}`,[`${a*2}:${b}`,`${a}:${b*2}`,`${b}:${a}`],'両方を2で割ります。',diff);
-     else if(n%4===1)addCalc(g,t,'速さ',`${a*20}kmを${c}時間で進む速さは？`,a*20/c,[a*20*c,a*20-c,a*20+c],'速さ＝道のり÷時間です。',diff);
-     else if(n%4===2)addCalc(g,t,'円',`半径${a}cmの円周（円周率3.14）は？`,(2*a*3.14).toFixed(2),[(a*3.14).toFixed(2),(a*a*3.14).toFixed(2),(2*a+3.14).toFixed(2)],'円周＝直径×円周率です。',diff);
-     else addCalc(g,t,'分数',`${a}/${a*b} を約分すると？`,`1/${b}`,[`${a}/${b}`,`${b}/${a}`,`1/${a}`],`分子・分母を${a}で割ります。`,diff);
-    }else{
-     if(n%2===0)addCalc(g,t,'比と割合の応用',`男子と女子の人数比が${a}:${b}で、合計${(a+b)*c}人です。男子は？`,a*c,[b*c,(a+b)*c,c],'全体を比の合計で分けます。',diff);
-     else addCalc(g,t,'図形の応用',`半径${a}cmの円の面積から、半径${b}cmの円の面積を引くと？（円周率3.14）`,((a*a-b*b)*3.14).toFixed(2),[(a-b)*3.14,(a*a+b*b)*3.14,(a-b)*(a-b)*3.14],'それぞれの円の面積を求めて引きます。',diff);
-    }
-   }else if(g==='j1'){
-    const a=2+(n%9),b=3+(n%7),c=1+(n%5);
-    if(!adv){
-     if(n%4===0)addCalc(g,t,'正負の数',`${-a}＋${b} は？`,-a+b,[-a-b,a+b,a-b],'符号に注意して数直線で考えます。',diff);
-     else if(n%4===1)addCalc(g,t,'文字式',`${a}x＋${b}x は？`,`${a+b}x`,[`${a*b}x`,`${a+b}x²`,`${a-b}x`],'同類項の係数を足します。',diff);
-     else if(n%4===2)addCalc(g,t,'方程式',`${a}x=${a*b} のときxは？`,b,[a,a*b,b-a],'両辺を係数で割ります。',diff);
-     else addCalc(g,t,'比例',`y=${a}xで、x=${b}のときyは？`,a*b,[a+b,b/a,a-b],'式にxの値を代入します。',diff);
-    }else{
-     if(n%2===0)addCalc(g,t,'方程式の応用',`${a}個で${a*b}円の商品と、送料${c*100}円の合計は？`,a*b+c*100,[a*(b+c*100),a*b,c*100],'商品の合計に送料を足します。',diff);
-     else addCalc(g,t,'比例・反比例',`xy=${a*b}で、x=${a}のときyは？`,b,[a,a*b,a+b],'反比例では積xyが一定です。',diff);
-    }
-   }else if(g==='j2'){
-    const a=2+(n%6),b=1+(n%8),c=3+(n%5);
-    if(!adv){
-     if(n%4===0)addCalc(g,t,'連立方程式',`x+y=${a+b}、x−y=${a-b} の解のxは？`,a,[b,a+b,a-b],'2式を足して2xを求めます。',diff);
-     else if(n%4===1)addCalc(g,t,'一次関数',`y=${a}x+${b}の傾きは？`,a,[b,a+b,-a],'xの係数が傾きです。',diff);
-     else if(n%4===2)addCalc(g,t,'確率',`赤玉${a}個、白玉${b}個から1個取るとき赤の確率は？`,`${a}/${a+b}`,[`${b}/${a+b}`,`${a}/${b}`,`${a+b}/${a}`],'全体の個数を分母、赤玉の個数を分子にします。',diff);
-     else addCalc(g,t,'図形',`多角形の内角の和が${(c-2)*180}°です。何角形？`,c,[c+1,c-1,c+2],'n角形の内角の和は(n−2)×180°です。',diff);
-    }else{
-     if(n%2===0)addCalc(g,t,'一次関数の応用',`直線y=${a}x+${b}上でx=${c}の点のy座標は？`,a*c+b,[a+c+b,a*c,a+b],'xを代入します。',diff);
-     else addCalc(g,t,'連立方程式の文章題',`大人${a}人と子ども${b}人で計${a*500+b*300}円。大人1人500円、子ども1人300円のとき合計人数は？`,a+b,[a*b,a+b+1,a+b-1],'人数を足します。料金条件は検算に使えます。',diff);
-    }
-   }else{
-    const a=2+(n%7),b=1+(n%6),c=2+(n%5);
-    if(!adv){
-     if(n%4===0)addCalc(g,t,'平方根',`√${a*a} は？`,a,[a*a,2*a,a-1],'正の平方根を答えます。',diff);
-     else if(n%4===1)addCalc(g,t,'二次方程式',`x²=${b*b} の解は？`,`±${b}`,[`${b}`,`${-b}`,`${b*b}`],'正と負の両方が解です。',diff);
-     else if(n%4===2)addCalc(g,t,'相似',`相似比が${a}:${b}のとき、面積比は？`,`${a*a}:${b*b}`,[`${a}:${b}`,`${a*2}:${b*2}`,`${a*a*a}:${b*b*b}`],'面積比は相似比の2乗です。',diff);
-     else addCalc(g,t,'展開',`(x+${b})(x+${c})の定数項は？`,b*c,[b+c,b-c,b*b+c*c],'定数項どうしを掛けます。',diff);
-    }else{
-     if(n%2===0)addCalc(g,t,'二次関数の応用',`y=${a}x²でx=${c}のときyは？`,a*c*c,[a*c,a+c*c,a*a*c],'xを2乗して係数を掛けます。',diff);
-     else addCalc(g,t,'三平方の定理',`直角をはさむ2辺が${a*3}cmと${a*4}cmの直角三角形。斜辺は？`,a*5,[a*7,a*12,a*4],'3:4:5の直角三角形の比を使えます。',diff);
-    }
-  }
+
+function mapExternalQuestion(raw,index){
+ const choices=[raw.Choice1,raw.Choice2,raw.Choice3,raw.Choice4].map(v=>String(v??''));
+ let answer=Number(raw.CorrectChoiceIndex)-1;
+ if(!Number.isInteger(answer)||answer<0||answer>3||choices[answer]!==String(raw.CorrectAnswer??'')){
+  answer=choices.indexOf(String(raw.CorrectAnswer??''));
  }
-}
-}
-
-const CURRICULUM_TOPICS={
- g4:{
-  '国語':[
-   [1,'漢字・語句','漢字辞典では、部首・画数・読み方などを手掛かりに漢字を調べる。'],[1,'物語文','登場人物の気持ちは、会話・行動・情景の表現を根拠に読む。'],
-   [2,'説明文','段落どうしの関係を捉え、中心となる語や文を見つける。'],[2,'修飾語','修飾語は、どの言葉を詳しく説明しているかを確かめる。'],
-   [3,'慣用句・ことわざ','慣用句やことわざは、言葉どおりではないまとまった意味をもつ。'],[3,'要約・作文','文章の中心を残し、具体例や繰り返しを整理して短くまとめる。']
-  ],
-  '理科':[
-   [1,'季節と生物','気温の変化と植物・動物の様子を継続して観察し、季節との関係を考える。'],[1,'天気と気温','晴れの日と曇りの日では、1日の気温の変化の仕方が異なる。'],
-   [2,'電流の働き','乾電池の向きやつなぎ方を変えると、モーターの回り方や電流の向きが変わる。'],[2,'月と星','月や星は時間がたつと見える位置が変わるが、星の並び方はほぼ変わらない。'],
-   [3,'水の三態','水は温度によって氷・水・水蒸気に状態が変化する。'],[3,'ものの温まり方','金属・水・空気では、熱の伝わり方に違いがある。']
-  ],
-  '社会':[
-   [1,'都道府県','47都道府県の名称・位置・特色を地図と結び付けて捉える。'],[1,'地図の読み方','方位・縮尺・地図記号を使って、地域の位置や土地利用を読み取る。'],
-   [2,'水道・ごみ','水道や廃棄物処理は、地域の人々の健康で安全な生活を支えている。'],[2,'自然災害','地域では地震・風水害などに備え、行政と住民が協力して防災に取り組む。'],
-   [3,'伝統・文化','地域の伝統や文化は、人々の願いや工夫を受け継ぎながら守られている。'],[3,'地域の発展','地域の特色は、自然条件・交通・産業・人々の活動と関係している。']
-  ],
-  '英語':[
-   [1,'あいさつ・気分','Good morning.やHow are you?などを場面に応じて使う。'],[1,'好きなもの','I like ... を使って、自分の好きなものを伝える。'],
-   [2,'曜日・時刻','曜日や時刻をたずねたり答えたりする表現を使う。'],[2,'文房具・持ち物','Do you have ...? とYes, I do. / No, I do not.でやり取りする。'],
-   [3,'ほしいもの','What do you want? とI want ... を使って希望を伝える。'],[3,'道案内・場所','Go straight.やTurn right.などを使って道を案内する。']
-  ]
- },
- g5:{
-  '国語':[
-   [1,'敬語','尊敬語・謙譲語・丁寧語を、相手や場面に応じて使い分ける。'],[1,'原因と結果','文章中の原因と結果、意見と根拠の関係を捉える。'],
-   [2,'和語・漢語・外来語','語の由来や特徴を知り、場面に合う言葉を選ぶ。'],[2,'資料を用いた文章','図表やグラフから必要な情報を取り出し、文章の主張と結び付ける。'],
-   [3,'複合語・同音異義語','複合語の組み立てや、同じ読みで意味が異なる語を区別する。'],[3,'意見文','主張・理由・具体例・反対意見への応答を対応させて書く。']
-  ],
-  '理科':[
-   [1,'植物の発芽と成長','発芽には水・空気・適温が必要で、成長には日光や肥料が関係する。'],[1,'魚の誕生','メダカなどの卵の内部が変化し、子が育つ過程を観察する。'],
-   [2,'天気の変化','雲の量や動き、気象情報を基に天気の変化を予想する。'],[2,'流れる水の働き','流れる水には土地を削る・運ぶ・積もらせる働きがある。'],
-   [3,'ものの溶け方','溶ける量は水の量や温度により変わり、溶けた物質も全体の質量に含まれる。'],[3,'振り子','振り子の1往復の時間は、主に振り子の長さによって変わる。']
-  ],
-  '社会':[
-   [1,'日本の国土','日本の地形・気候・人口分布を、地域ごとの特色と関連付ける。'],[1,'農業・水産業','食料生産は自然条件・技術・輸送・消費者の需要と関係する。'],
-   [2,'工業生産','工業地域の分布や、原料の輸入・製品の輸送・技術の工夫を捉える。'],[2,'情報産業','放送・新聞・インターネットなどの情報が社会や生活に与える影響を考える。'],
-   [3,'環境と森林','森林や水資源を守ることは、国土保全や生活環境の維持につながる。'],[3,'貿易と運輸','日本の産業は貿易や交通網を通じて国内外と結び付いている。']
-  ],
-  '英語':[
-   [1,'名前・つづり','What is your name?やHow do you spell it?で名前やつづりを伝える。'],[1,'誕生日・日付','When is your birthday? と月・日付の表現を使う。'],
-   [2,'できること','canを使って、できること・できないことを伝える。'],[2,'道案内','Where is ...? と位置・方向の表現を使って案内する。'],
-   [3,'注文・値段','What would you like?やHow much is it?で注文や値段をやり取りする。'],[3,'日課','I usually ... at ... のように頻度や時刻を含めて日課を伝える。']
-  ]
- },
- g6:{
-  '国語':[
-   [1,'筆者の主張','文章全体の構成を捉え、事実・意見・根拠を区別する。'],[1,'文の組み立て','主語・述語・修飾語や文節どうしの係り受けを捉える。'],
-   [2,'熟語の構成','熟語を、似た意味・反対の意味・修飾関係などの構成から捉える。'],[2,'話し合い','立場や根拠を明確にし、共通点と相違点を整理して合意形成を図る。'],
-   [3,'古典・短歌俳句','昔の言葉の響きや、短歌・俳句の情景と表現の工夫を味わう。'],[3,'引用と出典','引用部分を明確にし、資料名・著者などの出典を示す。']
-  ],
-  '理科':[
-   [1,'ものの燃え方','燃焼には酸素が必要で、燃えた後は二酸化炭素の割合が増える。'],[1,'人の体','呼吸・消化・血液循環などの働きが生命維持のために関連している。'],
-   [2,'植物のつくりと働き','植物は根から水を取り入れ、葉で光合成を行い、体内を水が移動する。'],[2,'生物と環境','生物は食物連鎖や空気・水を通じて互いに関わり合っている。'],
-   [3,'てこ','てこがつり合うとき、力の大きさと支点からの距離の積が左右で等しい。'],[3,'月と太陽','月の見え方は、太陽・月・地球の位置関係によって変化する。']
-  ],
-  '社会':[
-   [1,'日本の歴史・古代','狩猟採集から農耕、古代国家の形成までを資料と年代で捉える。'],[1,'武士の政治','鎌倉・室町の武士の政治と、社会・文化の変化を関連付ける。'],
-   [2,'近世社会','戦国の統一、江戸幕府、身分や産業・文化の発達を捉える。'],[2,'近代化','明治維新以後の制度改革・産業発展・国際関係を捉える。'],
-   [3,'日本国憲法','国民主権・基本的人権の尊重・平和主義が基本原則である。'],[3,'政治と国際社会','国会・内閣・裁判所、地方自治、国際連合の働きを捉える。']
-  ],
-  '英語':[
-   [1,'自己紹介','出身地・得意なこと・好きなことを複数の文で紹介する。'],[1,'生活・頻度','always、usually、sometimesなどを使って生活を説明する。'],
-   [2,'過去の出来事','動詞の過去形を使って、昨日や思い出の出来事を伝える。'],[2,'行きたい国・地域','I want to go to ... because ...で希望と理由を伝える。'],
-   [3,'将来の夢','I want to be ... やI want to ...で将来の希望を伝える。'],[3,'中学校生活への期待','I want to join ...などで、中学校で取り組みたいことを伝える。']
-  ]
- },
- j1:{
-  '国語':[
-   [1,'説明的文章','段落の役割や接続語に注目し、要旨と筆者の主張を捉える。'],[1,'文法・品詞','自立語と付属語、名詞・動詞・形容詞などの品詞を区別する。'],
-   [2,'文学的文章','人物・場面・語り手・表現に注目し、心情の変化を根拠とともに読む。'],[2,'古文入門','歴史的仮名遣いや古語に触れ、現代語との違いを捉える。'],
-   [3,'情報の整理','複数の資料を比較し、共通点・相違点・情報の信頼性を整理する。'],[3,'スピーチ・作文','目的と相手を意識し、構成と根拠を明確にして表現する。']
-  ],
-  '理科':[
-   [1,'植物の分類','花・種子・葉・根などの特徴を基に植物を分類する。'],[1,'動物の分類','背骨の有無や体のつくり、殖え方などを基に動物を分類する。'],
-   [2,'身の回りの物質','密度・溶解度・状態変化・気体の性質を実験結果から捉える。'],[2,'光・音・力','反射・屈折、音の振動、力の大きさと向きを関連付ける。'],
-   [3,'火山・地震','火山活動や地震、地層の観察から大地の変化を捉える。'],[3,'地層と化石','地層の重なりや化石を手掛かりに、過去の環境や年代を推定する。']
-  ],
-  '社会':[
-   [1,'世界の地域構成','緯度・経度・大陸・州・国の位置を地球儀や地図で捉える。'],[1,'世界各地の生活','気候・宗教・産業などと人々の生活文化を関連付ける。'],
-   [2,'古代文明と日本','文明の成立、宗教、東アジアとの交流、日本の古代国家を捉える。'],[2,'中世の日本','武家政権の成立と、産業・文化・対外関係の変化を捉える。'],
-   [3,'日本の地域構成','地形・気候・人口・産業・交通から日本の地域的特色を捉える。'],[3,'資料・地図活用','主題図・統計・写真を組み合わせ、地域の課題を説明する。']
-  ],
-  '英語':[
-   [1,'be動詞・一般動詞','主語に応じてbe動詞を選び、一般動詞の文と区別する。'],[1,'疑問文・命令文','Do/Doesや疑問詞を使う疑問文、命令文の語順を理解する。'],
-   [2,'三人称単数現在','主語がhe・she・itなどのとき、一般動詞にsやesを付ける。'],[2,'代名詞・所有格','I・me・my・mineなどを文中の働きに応じて使い分ける。'],
-   [3,'現在進行形','be動詞＋動詞ingで、今している動作を表す。'],[3,'過去形','規則動詞・不規則動詞の過去形を使い、過去の出来事を表す。']
-  ]
- },
- j2:{
-  '国語':[
-   [1,'論説文','主張・根拠・反論の関係を捉え、論理の展開を評価する。'],[1,'用言の活用','動詞・形容詞・形容動詞の活用形と活用の種類を捉える。'],
-   [2,'古典・漢文','古文の語句や係り結び、漢文の返り点・書き下し文を理解する。'],[2,'表現技法','比喩・対句・反復・倒置などの効果を、文脈に即して考える。'],
-   [3,'情報とメディア','情報の発信者・目的・根拠を確認し、複数情報を批判的に読む。'],[3,'意見文・討論','異なる立場を踏まえ、根拠を比較して自分の考えを構成する。']
-  ],
-  '理科':[
-   [1,'化学変化と原子・分子','化学変化を原子・分子の組み替えとして捉え、化学反応式で表す。'],[1,'質量保存','化学変化の前後で、密閉された系の全体の質量は変わらない。'],
-   [2,'電流と回路','電流・電圧・抵抗の関係をオームの法則や回路図で捉える。'],[2,'電流と磁界','電流がつくる磁界や、磁界中の電流が受ける力を捉える。'],
-   [3,'気象','気圧・気温・湿度・前線・気団から天気の変化を説明する。'],[3,'生物の体','細胞・消化・呼吸・循環・排出・刺激と反応を関連付ける。']
-  ],
-  '社会':[
-   [1,'日本の諸地域','人口・資源・産業・交通などの視点から各地方の特色を捉える。'],[1,'世界と日本の結び付き','貿易・交通・通信・人の移動から地域間の結び付きを捉える。'],
-   [2,'近世の日本','江戸幕府の支配、産業・交通・文化、対外政策の変化を捉える。'],[2,'近代革命と産業革命','市民革命・産業革命が政治や社会、国際関係を変えた過程を捉える。'],
-   [3,'明治維新と近代国家','明治政府の改革、憲法制定、産業化、対外戦争を関連付ける。'],[3,'近代の文化と社会','都市化・教育・大衆文化・社会運動の広がりを捉える。']
-  ],
-  '英語':[
-   [1,'過去進行形','was/were＋動詞ingで、過去のある時点で進行中の動作を表す。'],[1,'未来表現','willやbe going toを使い、予測・意思・予定を表す。'],
-   [2,'不定詞・動名詞','to＋動詞原形と動詞ingが、名詞・形容詞・副詞の働きをする場合を区別する。'],[2,'比較','比較級・最上級・as ... asを使って程度を比べる。'],
-   [3,'受動態','be動詞＋過去分詞で、動作を受ける側を主語にする。'],[3,'接続詞・There構文','when・if・becauseなどで文を結び、There is/areで存在を表す。']
-  ]
- },
- j3:{
-  '国語':[
-   [1,'批評的読解','文章の前提・論拠・例示を吟味し、主張の妥当性を評価する。'],[1,'文法の総合','助詞・助動詞の意味と働き、文の成分・連文節を総合的に捉える。'],
-   [2,'古典の読解','古文・漢文の語句、表現、歴史的背景を踏まえて内容を解釈する。'],[2,'俳句・短歌','定型・季語・切れ・比喩などが生む効果を読み取る。'],
-   [3,'複数資料の統合','文章・図表・統計を関連付け、情報の信頼性と結論を検討する。'],[3,'小論文・推敲','課題に対する立場を定め、根拠を配置し、反論を踏まえて推敲する。']
-  ],
-  '理科':[
-   [1,'生命の連続性','細胞分裂・生殖・遺伝を通じて生命が連続する仕組みを捉える。'],[1,'遺伝の規則性','遺伝子の組合せと形質の現れ方を、モデルや確率で考える。'],
-   [2,'化学変化とイオン','電解質・イオン・電池・酸とアルカリの反応を粒子モデルで捉える。'],[2,'運動とエネルギー','力・速さ・仕事・エネルギーの関係をグラフや式で捉える。'],
-   [3,'地球と宇宙','天体の日周運動・年周運動、月や金星の見え方を位置関係で説明する。'],[3,'自然環境と科学技術','生態系・物質循環・エネルギー資源・科学技術の利用を総合的に考える。']
-  ],
-  '社会':[
-   [1,'現代史','二度の世界大戦、戦後改革、冷戦、国際協調の流れを因果関係で捉える。'],[1,'現代社会の特色','少子高齢化・情報化・グローバル化が社会に与える影響を捉える。'],
-   [2,'日本国憲法と人権','基本的人権・国民主権・平和主義と、権利を保障する制度を理解する。'],[2,'政治の仕組み','国会・内閣・裁判所・地方自治・選挙の役割と相互関係を捉える。'],
-   [3,'経済','市場・価格・企業・金融・財政・社会保障の仕組みを関連付ける。'],[3,'国際社会','国際連合、国際法、地域統合、地球規模課題への協力を考える。']
-  ],
-  '英語':[
-   [1,'現在完了','have/has＋過去分詞で、継続・経験・完了を文脈に応じて表す。'],[1,'SVOC・間接疑問','目的語と補語の関係や、疑問詞＋主語＋動詞の語順を理解する。'],
-   [2,'関係代名詞','who・which・thatを使い、名詞を後ろから詳しく説明する。'],[2,'分詞・後置修飾','現在分詞・過去分詞を使って、名詞を後ろから修飾する。'],
-   [3,'仮定法・間接表現','If I were ...などで現実と異なる仮定や願いを表す。'],[3,'長文・意見表現','段落構成・指示語・接続表現を捉え、根拠を示して意見を書く。']
-  ]
+ if(answer<0)throw new Error(`正解が選択肢内にありません: ${raw.QuestionId||index}`);
+ const grade=String(raw.Grade||'');
+ const term=Number(raw.Term);
+ const difficulty=raw.Difficulty==='advanced'?'advanced':'normal';
+ const subject=String(raw.Subject||'');
+ if(!GRADES[grade]||![1,2,3].includes(term)||!SUBJECTS.includes(subject)){
+  throw new Error(`学年/学期/教科が不正です: ${raw.QuestionId||index}`);
  }
-};
-
-function firstMeaningfulToken(text){
- return String(text).trim().replace(/^[「『\[【(（]+/,'').split(/[\s、。,.!?！？:：]/)[0].slice(0,8);
-}
-function makeDistinctChoices(correct,wrongPool){
- const chosen=[String(correct)];
- const starts=new Set([firstMeaningfulToken(correct)]);
- for(const item of wrongPool){
-  const value=String(item);
-  const token=firstMeaningfulToken(value);
-  if(!chosen.includes(value)&&!starts.has(token)){chosen.push(value);starts.add(token);}
-  if(chosen.length===4)break;
- }
- const fallbacks=['条件を確かめず、見た目だけで決める。','一つの例だけを見て、いつも同じだと考える。','理由を比べず、覚えている言葉だけを選ぶ。'];
- for(const value of fallbacks){
-  const token=firstMeaningfulToken(value);
-  if(chosen.length<4&&!starts.has(token)){chosen.push(value);starts.add(token);}
- }
- const shuffled=chosen.slice(0,4).sort(()=>Math.random()-.5);
- return {choices:shuffled,answer:shuffled.indexOf(String(correct))};
+ if(choices.some(v=>!v))throw new Error(`空の選択肢があります: ${raw.QuestionId||index}`);
+ if(new Set(choices).size!==4)throw new Error(`選択肢が重複しています: ${raw.QuestionId||index}`);
+ return {
+  id:String(raw.QuestionId||`Q-${index+1}`),
+  grade,term,difficulty,subject,
+  unit:String(raw.Unit||''),skill:String(raw.Skill||''),
+  tier:String(raw.Tier||''),questionType:String(raw.QuestionType||''),
+  q:String(raw.QuestionText||''),choices,answer,ex:String(raw.Explanation||''),
+  confidence:String(raw.CurriculumConfidence||''),masteryRole:String(raw.MasteryRole||'')
+ };
 }
 
-const NORMAL_STEMS=[
- '正しい説明はどれ？','この単元で大切なことはどれ？','授業で習う内容に合うものはどれ？','正しくまとめた文はどれ？','いちばん確かな説明はどれ？',
- 'まちがっていない文はどれ？','ノートに書くならどの文？','先生の説明と合うものはどれ？','たしかめ問題です。正しいものはどれ？','この学習のポイントはどれ？',
- '資料を読む前に覚えておくことはどれ？','友だちに説明するならどれ？','テストで正解になる説明はどれ？','この単元を一文で表すとどれ？','学んだことを使えている文はどれ？'
-];
-const ADV_STEMS=[
- '資料を使って考えるとき、いちばんよい進め方はどれ？','別の場面にも使える考え方はどれ？','理由まで正しく説明しているものはどれ？','まちがった結論を防ぐ考え方はどれ？','条件が変わったときも使える説明はどれ？',
- '二つの資料を比べるときに大切なことはどれ？','結果だけでなく原因も考えているものはどれ？','根拠をはっきりさせた判断はどれ？','例外がないか確かめる方法はどれ？','学んだ知識を実際の問題に使うならどれ？',
- '一つの情報だけに頼らない考え方はどれ？','説明の弱いところを見つけるにはどうする？','条件と結果を結び付けているものはどれ？','最も筋道の通った考え方はどれ？','答えを確かめ直す方法としてよいものはどれ？'
-];
+function applyQuestionPayload(payload,validationPayload=null){
+ if(!payload||!Array.isArray(payload.Questions))throw new Error('問題JSONに Questions 配列がありません。');
+ const mapped=payload.Questions.map(mapExternalQuestion);
+ if(!mapped.length)throw new Error('問題が0件です。');
+ const ids=new Set();
+ for(const q of mapped){
+  if(ids.has(q.id))throw new Error(`QuestionIdが重複しています: ${q.id}`);
+  ids.add(q.id);
+ }
+ if(validationPayload){
+  const status=validationPayload?.Metadata?.Status;
+  const count=Number(validationPayload?.Metadata?.QuestionCount);
+  const errors=Array.isArray(validationPayload?.Errors)?validationPayload.Errors:[];
+  if(status&&status!=='PASS')throw new Error(`検証JSONのStatusが${status}です。`);
+  if(errors.length)throw new Error(`検証JSONに${errors.length}件のErrorsがあります。`);
+  if(Number.isFinite(count)&&count!==mapped.length)throw new Error(`検証JSONは${count}問、問題JSONは${mapped.length}問で一致しません。`);
+ }
+ QUESTIONS=mapped;
+ QUESTION_METADATA=payload.Metadata||{};
+ VALIDATION_REPORT=validationPayload;
+ questionDataReady=true;
+ const version=QUESTION_METADATA.Version?` v${QUESTION_METADATA.Version}`:'';
+ const validation=validationPayload?' / 検証PASS':'';
+ setDataStatus(`${QUESTIONS.length.toLocaleString()}問${version}${validation} を読み込みました。`,'ok');
+ const startBtn=document.getElementById('startBtn');
+ if(startBtn)startBtn.disabled=false;
+ const fallback=document.getElementById('fileFallbackPanel');
+ if(fallback)fallback.classList.add('hidden');
+}
 
-function buildCurriculumQuestions(){
- for(const [grade,subjects] of Object.entries(CURRICULUM_TOPICS)){
-  for(const [subject,topics] of Object.entries(subjects)){
-   if(subject==='英語')continue; // 英語は専用生成器で作る
-   for(let term=1;term<=3;term++){
-    const termTopics=topics.filter(x=>x[0]===term);
-    const allFacts=topics.map(x=>x[2]);
-    for(const diff of ['normal','advanced']){
-     for(let i=0;i<30;i++){
-      const [_,unit,correct]=termTopics[i%termTopics.length];
-      const rotated=allFacts.filter(x=>x!==correct).sort((a,b)=>((a.length+i)%17)-((b.length+i)%17));
-      if(diff==='normal'){
-       const c=makeDistinctChoices(correct,rotated);
-       addQuestion(grade,term,subject,unit,`${unit}：${NORMAL_STEMS[i%NORMAL_STEMS.length]}`,c.choices,c.answer,correct,'normal');
-      }else{
-       const applied=`資料の条件を確かめ、${correct}`;
-       const wrong=[
-        `結果だけを見て、条件の違いを調べない。`,
-        `覚えた言葉だけで決め、資料の根拠を使わない。`,
-        `一つの例を見ただけで、いつでも同じだと考える。`,
-        ...rotated.map(x=>`別の単元の知識である「${x}」だけを使って判断する。`)
-       ];
-       const c=makeDistinctChoices(applied,wrong);
-       addQuestion(grade,term,subject,`${unit}(応用)`,`${unit}：${ADV_STEMS[i%ADV_STEMS.length]}`,c.choices,c.answer,`条件・資料・根拠を結び付けて考えます。${correct}`,'advanced');
-      }
-     }
-    }
-   }
-  }
+async function fetchJson(path,required=true){
+ try{
+  const res=await fetch(path,{cache:'no-store'});
+  if(!res.ok)throw new Error(`${res.status} ${res.statusText}`);
+  return await res.json();
+ }catch(err){
+  if(required)throw err;
+  return null;
  }
 }
 
-const EN_NAMES=['Ken','Yuki','Mika','Taro','Sara','Emma','Daiki','Lisa'];
-const EN_ITEMS=['soccer','music','dogs','apples','science','tennis','books','cooking'];
-const EN_PLACES=['school','the library','the park','Kyoto','the station','the museum'];
-const EN_TIMES=['every day','on Sunday','after school','at seven','yesterday','last week'];
-function pick(a,i,step=1){return a[(i*step)%a.length]}
-function englishQuestion(grade,term,diff,i){
- const name=pick(EN_NAMES,i,3), item=pick(EN_ITEMS,i,5), place=pick(EN_PLACES,i,2), time=pick(EN_TIMES,i,1);
- const n=(i%8)+2;
- let unit='',q='',correct='',wrong=[],ex='';
- if(grade==='g4'){
-  const patterns=[
-   ()=>{unit='あいさつ';q='A: How are you?  B: ___';correct='I am fine, thank you.';wrong=['See you tomorrow.','Good night, Ken.','My name is Yuki.'];ex='How are you?には、体調や気分を答えます。';},
-   ()=>{unit='好きなもの';q=`Choose the correct sentence: ${name}は${item}が好きです。`;correct=`${name} likes ${item}.`;wrong=[`I can ${item}.`,`Do you have ${item}?`,`This is my ${item}.`];ex='「好きです」はlikeを使います。heやsheの代わりになる名前ではlikesになります。';},
-   ()=>{unit='持ち物';q=`A: Do you have a pen?  B: ___`;correct='Yes, I do.';wrong=['No, I am not.','It is a pen.','Can you swim?'];ex='Do you ...?にはYes, I do.またはNo, I do not.で答えます。';},
-   ()=>{unit='曜日・時刻';q=`What day is it today? に合う答えは？`;correct='It is Monday.';wrong=['It is seven o’clock.','I like Monday.','Go straight.'];ex='What dayは曜日をたずねる表現です。';},
-   ()=>{unit='道案内';q='「まっすぐ進んでください」に合う英語は？';correct='Go straight.';wrong=['Turn left.','Stop here.','Open the door.'];ex='Go straight.は「まっすぐ進んで」です。';}
-  ];patterns[i%patterns.length]();
- }else if(grade==='g5'){
-  const patterns=[
-   ()=>{unit='できること';q=`${name} ___ swim very well.`;correct='can';wrong=['is','has','does'];ex='「～できる」はcan + 動詞の原形です。';},
-   ()=>{unit='日付';q='A: When is your birthday?  B: ___';correct='It is on May 10.';wrong=['It is ten years old.','I am in May.','My birthday can May.'];ex='日付の前にはonを使います。';},
-   ()=>{unit='道案内';q=`A: Where is ${place}?  B: ___`;correct='It is next to the bank.';wrong=['I go there yesterday.','Please eat lunch.','It can play tennis.'];ex='場所を説明するときはnext toやin front ofなどを使います。';},
-   ()=>{unit='日課';q=`Choose the correct sentence.`;correct=`${name} usually gets up at seven.`;wrong=[`Usually ${name} at seven.`,`Gets up ${name} seven usually.`,`At seven is ${name} get up.`];ex='英語は「主語 + 頻度 + 動詞 + 時刻」の順が基本です。';},
-   ()=>{unit='注文';q='A: What would you like?  B: ___';correct='I would like some juice.';wrong=['How much are you?','I can juice quickly.','The juice likes me.'];ex='注文ではI would like ...を使えます。';}
-  ];patterns[i%patterns.length]();
- }else if(grade==='g6'){
-  const patterns=[
-   ()=>{unit='過去形';q=`${name} ___ soccer yesterday.`;correct='played';wrong=['plays','playing','will play'];ex='yesterdayがあるので過去形playedを使います。';},
-   ()=>{unit='行きたい場所';q=`I want to go to ${place} ___ I like history.`;correct='because';wrong=['but','or','when'];ex='理由を続けるときはbecauseを使います。';},
-   ()=>{unit='得意なこと';q=`Choose the correct sentence.`;correct=`${name} is good at cooking.`;wrong=[`${name} can good cooking.`,`Cooking is at ${name}.`,`Does ${name} good at cook?`];ex='be good at + 動詞ingで「～が得意」です。';},
-   ()=>{unit='将来の夢';q='「私は先生になりたいです」に合う英語は？';correct='I want to be a teacher.';wrong=['I was a teacher yesterday.','A teacher wants me.','Do I teach a teacher?'];ex='「～になりたい」はwant to beを使います。';},
-   ()=>{unit='短い読解';q=`${name} visited Kyoto last Sunday. Where did ${name} go?`;correct='To Kyoto.';wrong=['Last Sunday.','By train.','With a camera.'];ex='Whereは場所をたずねます。文中のKyotoが答えです。';}
-  ];patterns[i%patterns.length]();
- }else if(grade==='j1'){
-  const patterns=[
-   ()=>{unit='be動詞';q=`${name} ___ a student.`;correct='is';wrong=['am','are','do'];ex='1人の名前はhe/sheと同じなのでisを使います。';},
-   ()=>{unit='一般動詞';q=`${name} ___ ${item} every day.`;correct=item==='music'?'listens to':item==='books'?'reads':'likes';wrong=['is','does','can be'];ex='主語が3人称単数なので、現在形の一般動詞にsなどを付けます。';},
-   ()=>{unit='疑問文';q=`___ you play tennis after school?`;correct='Do';wrong=['Are','Is','Does'];ex='主語がyouの一般動詞の疑問文はDoで始めます。';},
-   ()=>{unit='現在進行形';q=`Look! ${name} ___ running now.`;correct='is';wrong=['does','has','will'];ex='今している動作はbe動詞 + 動詞ingです。';},
-   ()=>{unit='語順';q='Choose the correct sentence.';correct='Where do you play soccer?';wrong=['Do where soccer you play?','Soccer where is playing you?','You are where play soccer?'];ex='疑問詞 + do + 主語 + 動詞の原形の順です。';}
-  ];patterns[i%patterns.length]();
- }else if(grade==='j2'){
-  const patterns=[
-   ()=>{unit='未来表現';q=`I ___ visit ${place} next Sunday.`;correct='am going to';wrong=['was able to','have visited','am visiting yesterday'];ex='予定にはbe going to + 動詞の原形を使えます。';},
-   ()=>{unit='不定詞';q=`${name} went to the library ___ study.`;correct='to';wrong=['for','at','by'];ex='目的を表す不定詞はto + 動詞の原形です。';},
-   ()=>{unit='比較';q=`This book is ___ than that one.`;correct='more interesting';wrong=['most interesting','interest more','as interesting'];ex='2つを比べるので比較級more interestingを使います。';},
-   ()=>{unit='受動態';q='Choose the correct passive sentence.';correct='English is spoken in many countries.';wrong=['Many countries speak by English.','English spoke many countries.','Speaking English is countries.'];ex='受動態はbe動詞 + 過去分詞です。';},
-   ()=>{unit='接続詞';q=`I stayed home ___ it was raining.`;correct='because';wrong=['although','before','until'];ex='家にいた理由を表すのでbecauseです。';}
-  ];patterns[i%patterns.length]();
- }else{
-  const patterns=[
-   ()=>{unit='現在完了';q=`${name} has lived here ___ ${n} years.`;correct='for';wrong=['since','during','from'];ex='期間にはfor、開始点にはsinceを使います。';},
-   ()=>{unit='現在完了';q=`I have never ___ to Canada.`;correct='been';wrong=['went','go','being'];ex='経験の現在完了はhave + 過去分詞beenです。';},
-   ()=>{unit='関係代名詞';q=`The student ___ won the contest is my friend.`;correct='who';wrong=['where','when','whose place'];ex='人を先行詞とし、後ろの文の主語になるのでwhoです。';},
-   ()=>{unit='分詞';q='Choose the correct sentence.';correct='The girl playing the piano is my sister.';wrong=['The piano played the girl is my sister.','My sister is the girl play piano.','Playing is my sister the piano girl.'];ex='現在分詞playingで、前の名詞the girlを後ろから説明します。';},
-   ()=>{unit='間接疑問';q=`Do you know ___ ${name} lives?`;correct='where';wrong=['where does','does where','that where'];ex='間接疑問では疑問詞の後を「主語 + 動詞」の語順にします。';},
-   ()=>{unit='仮定法';q='If I ___ you, I would talk to the teacher.';correct='were';wrong=['am','will be','have been'];ex='現実と異なる仮定ではIf I were ...を使います。';},
-   ()=>{unit='長文読解';q=`${name} wanted to reduce plastic waste, so ${name} began using a reusable bottle. Why did ${name} use it?`;correct='To reduce plastic waste.';wrong=['To buy more bottles.','Because water was expensive.','After losing a school bag.'];ex='soの前に目的につながる理由が書かれています。';}
-  ];patterns[i%patterns.length]();
+async function loadExternalQuestionData(){
+ const startBtn=document.getElementById('startBtn');
+ if(startBtn)startBtn.disabled=true;
+ if(location.protocol==='file:'){
+  questionDataReady=false;
+  setDataStatus('Windows直開き(file://)では外部JSONを自動読込できません。start_study_aim.bat から起動してください。','error');
+  const fallback=document.getElementById('fileFallbackPanel');
+  if(fallback)fallback.classList.remove('hidden');
+  return;
  }
- if(diff==='advanced'){
-  if(i%3===0){q=`Read and choose the best answer. ${q}`;ex=`文の意味と文法の両方を確かめます。${ex}`;}
-  else if(i%3===1){q=`Which answer is grammatically correct? ${q}`;ex=`語順・時制・主語と動詞の形を確認します。${ex}`;}
-  else{q=`Use the context to complete the sentence. ${q}`;ex=`前後の文脈から必要な形を判断します。${ex}`;}
- }
- const c=makeDistinctChoices(correct,wrong);
- return {unit,q,choices:c.choices,answer:c.answer,ex};
-}
-function buildEnglishQuestions(){
- for(const grade of Object.keys(GRADES))for(let term=1;term<=3;term++)for(const diff of ['normal','advanced']){
-  for(let i=0;i<38;i++){
-   const e=englishQuestion(grade,term,diff,i+term*7+(diff==='advanced'?5:0));
-   addQuestion(grade,term,'英語',e.unit,e.q,e.choices,e.answer,e.ex,diff);
-  }
+ setDataStatus('同じフォルダのJSONを読み込み中...','warn');
+ try{
+  const [questions,validation]=await Promise.all([
+   fetchJson(QUESTION_DATA_FILE,true),
+   fetchJson(VALIDATION_DATA_FILE,false)
+  ]);
+  applyQuestionPayload(questions,validation);
+ }catch(err){
+  console.error('JSON load failed:',err);
+  questionDataReady=false;
+  setDataStatus(`同じフォルダのJSONを読み込めません: ${err.message}`,'error');
+  const fallback=document.getElementById('fileFallbackPanel');
+  if(fallback)fallback.classList.remove('hidden');
  }
 }
 
-function toHalfWidthAscii(text){
- return String(text).replace(/[！-～]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0)).replace(/　/g,' ');
-}
-function simplifyGrade4Text(text){
- return String(text)
-  .replace(/最も適切/g,'いちばん正しい')
-  .replace(/捉える/g,'見つける')
-  .replace(/関連付け/g,'つなげて考え')
-  .replace(/根拠/g,'わけや手がかり')
-  .replace(/吟味/g,'よく確かめ')
-  .replace(/妥当性/g,'正しいかどうか')
-  .replace(/継続して/g,'続けて')
-  .replace(/一般に/g,'ふつうは')
-  .replace(/該当/g,'当てはまる')
-  .replace(/判断/g,'考えて決めること');
-}
-function normalizeAllQuestionText(){
- for(const q of QUESTIONS){
-  if(q.grade==='g4'){q.unit=simplifyGrade4Text(q.unit);q.q=simplifyGrade4Text(q.q);q.ex=simplifyGrade4Text(q.ex);q.choices=q.choices.map(simplifyGrade4Text);}
-  q.unit=toHalfWidthAscii(q.unit);q.q=toHalfWidthAscii(q.q);q.ex=toHalfWidthAscii(q.ex);
-  q.choices=q.choices.map(toHalfWidthAscii);
- }
-}
-function ensureMinimumQuestionTypes(minimum=30){
- const bands=[];
- for(const grade of Object.keys(GRADES))for(let term=1;term<=3;term++)for(const difficulty of ['normal','advanced'])for(const subject of SUBJECTS||['国語','算数・数学','理科','社会','英語'])bands.push({grade,term,difficulty,subject});
- const shortages=[];
- for(const b of bands){
-  const count=QUESTIONS.filter(q=>q.grade===b.grade&&q.term===b.term&&q.difficulty===b.difficulty&&q.subject===b.subject).length;
-  if(count<minimum)shortages.push({...b,count});
- }
- if(shortages.length)console.warn('30問未満の区分があります',shortages);
- return shortages;
+function validateQuestionCoverage(){
+ const expected=[];
+ for(const grade of Object.keys(GRADES))for(let term=1;term<=3;term++)for(const difficulty of ['normal','advanced'])for(const subject of SUBJECTS)expected.push({grade,term,difficulty,subject});
+ return expected.filter(b=>!QUESTIONS.some(q=>q.grade===b.grade&&q.term===b.term&&q.difficulty===b.difficulty&&q.subject===b.subject));
 }
 
-// 同一問題が別の学年・難易度へ混入しないよう、登録キーを検査して重複を除去します。
-function removeCrossBandDuplicates(){
- const seen=new Set();
- for(let i=QUESTIONS.length-1;i>=0;i--){
-  const q=QUESTIONS[i];
-  const key=`${q.grade}|${q.term}|${q.difficulty}|${q.subject}|${q.q}|${q.choices.join('|')}`;
-  if(seen.has(key))QUESTIONS.splice(i,1);else seen.add(key);
- }
-}
-buildMathQuestions();
-buildCurriculumQuestions();
-buildEnglishQuestions();
-normalizeAllQuestionText();
-removeCrossBandDuplicates();
-function refreshGeneratedMathQuestions(){
- for(let i=QUESTIONS.length-1;i>=0;i--)if(QUESTIONS[i].generatedMath)QUESTIONS.splice(i,1);
- buildMathQuestions();
- normalizeAllQuestionText();
-}
-const SUBJECTS=['国語','算数・数学','理科','社会','英語'];
-ensureMinimumQuestionTypes(30);
 const STORAGE={scores:'studyAimScoresV1',settings:'studyAimSettingsV1'};
 const DEFAULT_SETTINGS={sensitivity:1,invertView:false,fireKey:'Space',centerKey:'KeyC',up:'KeyW',left:'KeyA',down:'KeyS',right:'KeyD'};
 let settings={...DEFAULT_SETTINGS};
@@ -738,10 +396,16 @@ const $=id=>document.getElementById(id);
 const canvas=$('gameCanvas'),ctx=canvas.getContext('2d');
 let DPR=1, cw=0,ch=0;
 
-function init(){
+async function init(){
  $('gradeChecks').innerHTML=Object.entries(GRADE_TERMS).map(([k,v])=>`<label class="check-card"><input type="checkbox" value="${k}" ${k==='g4_t1'?'checked':''}>${v.html}</label>`).join('');
  $('subjectChecks').innerHTML=SUBJECTS.map(s=>`<label class="check-card"><input type="checkbox" value="${s}" checked>${s}</label>`).join('');
  loadSettings(); updateSettingsUI(); renderScores(); bindEvents(); resizeCanvas(); requestAnimationFrame(loop);
+ await loadExternalQuestionData();
+ const missing=validateQuestionCoverage();
+ if(questionDataReady&&missing.length){
+  console.warn('問題が存在しない区分:',missing);
+  setDataStatus(`${QUESTIONS.length.toLocaleString()}問を読み込みましたが、出題0件の区分が${missing.length}件あります。`,'warn');
+ }
 }
 function bindEvents(){
  $('startBtn').onclick=()=>startGame(false);
@@ -864,7 +528,7 @@ function releasePointerForUi(){
  }
 }
 function startGame(retry=false){
- refreshGeneratedMathQuestions();
+ if(!questionDataReady)return alert('問題JSONの読み込みが完了していません。');
  if(!retry){game.selectedGrades=selected('#gradeChecks input');game.selectedSubjects=selected('#subjectChecks input');}
  if(!game.selectedGrades.length)return alert('学年を1つ以上選んでください。');
  if(!game.selectedSubjects.length)return alert('教科を1つ以上選んでください。');
@@ -876,16 +540,29 @@ function startGame(retry=false){
  lockPointerForPlay();
 }
 function sampleQuestions(pool,n){
- const result=[];let last=null;
- while(result.length<n){
-  const round=[...pool].sort(()=>Math.random()-.5);
-  if(last&&round.length>1&&round[0]===last)[round[0],round[1]]=[round[1],round[0]];
-  for(const q of round){result.push(q);last=q;if(result.length===n)break;}
+ if(!pool.length)return [];
+ const remaining=[...pool].sort(()=>Math.random()-.5);
+ const result=[];
+ const subjectCount=new Map(),unitCount=new Map(),skillCount=new Map();
+ const inc=(m,k)=>m.set(k,(m.get(k)||0)+1);
+ while(result.length<n&&remaining.length){
+  let bestIndex=0,bestScore=Infinity;
+  for(let i=0;i<remaining.length;i++){
+   const q=remaining[i];
+   // 教科→単元→Skillの順で偏りを強く抑える。最後の乱数は同点時の散らし用。
+   const score=(subjectCount.get(q.subject)||0)*100+(unitCount.get(`${q.subject}|${q.unit}`)||0)*18+(skillCount.get(`${q.subject}|${q.unit}|${q.skill}`)||0)*7+Math.random();
+   if(score<bestScore){bestScore=score;bestIndex=i;}
+  }
+  const [picked]=remaining.splice(bestIndex,1);
+  result.push(picked);
+  inc(subjectCount,picked.subject);inc(unitCount,`${picked.subject}|${picked.unit}`);inc(skillCount,`${picked.subject}|${picked.unit}|${picked.skill}`);
  }
+ // 万一nよりpoolが少ない場合だけ、重複を許して補充する。
+ while(result.length<n)result.push(pool[Math.floor(Math.random()*pool.length)]);
  return result;
 }
 function showQuestion(){
- game.locked=false;const q=game.questions[game.index];$('qNumber').textContent=game.index+1;$('correctCount').textContent=game.correct;$('questionText').textContent='正面の3D問題ボードを確認';$('questionMeta').textContent=`${GRADES[q.grade]} ${TERMS[q.term]} ｜ ${q.subject} ｜ ${q.unit}`;
+ game.locked=false;const q=game.questions[game.index];$('qNumber').textContent=game.index+1;$('correctCount').textContent=game.correct;$('questionText').textContent='正面の3D問題ボードを確認';const detail=[q.unit,q.skill].filter(Boolean).join(' / ');$('questionMeta').textContent=`${GRADES[q.grade]} ${TERMS[q.term]} ｜ ${q.subject} ｜ ${detail}${q.tier?` ｜ ${TIER_LABELS[q.tier]||q.tier}`:''}`;
  createTargets(q.choices); updateAccuracy();
 }
 function panelPoint(panel,lx,ly,lz=0){
@@ -937,6 +614,7 @@ function fire(){
 }
 function answerTarget(index){
  if(game.locked)return;game.locked=true;const q=game.questions[game.index];
+ window.StudyAimYouTube?.onProblemCleared();
  if(index===q.answer){game.correct++;$('correctCount').textContent=game.correct;showToast(`正解！ ${q.ex}`,'good');setTimeout(nextQuestion,650);}else{
   showToast('不正解 - 解説を読もう','bad');setTimeout(()=>{game.pauseStarted=performance.now();releasePointerForUi();$('explainTitle').textContent=`不正解　正解：${q.choices[q.answer]}`;$('explainText').textContent=q.ex;$('explainModal').classList.remove('hidden');},320);
  }

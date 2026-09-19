@@ -247,6 +247,7 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
  <div class="modal">
   <h2>設定</h2>
   <div class="setting-row"><label>視点感度</label><div><input id="sensitivity" type="range" min="0.03" max="2.5" step="0.01"><span id="sensitivityValue"></span></div></div>
+  <div class="setting-row"><label>🎮 パッド視点感度</label><div><input id="gamepadSensitivity" type="range" min="0.3" max="3.0" step="0.05"><span id="gamepadSensitivityValue"></span></div></div>
   <div class="setting-row"><label>視点操作</label><label class="check-card" style="margin:0"><input id="invertView" type="checkbox">上下左右を反転する</label></div>
   <div class="setting-row"><label>照準を中央へ戻すキー</label><button id="bindCenter" class="secondary">クリックして変更</button></div>
   <div class="setting-row"><label>前進キー</label><button id="bindMoveUp" class="secondary">クリックして変更</button></div>
@@ -254,7 +255,7 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
   <div class="setting-row"><label>後退キー</label><button id="bindMoveDown" class="secondary">クリックして変更</button></div>
   <div class="setting-row"><label>右移動キー</label><button id="bindMoveRight" class="secondary">クリックして変更</button></div>
   <div class="setting-row"><label>操作</label><div><kbd id="keyUpLabel"></kbd> <kbd id="keyLeftLabel"></kbd> <kbd id="keyDownLabel"></kbd> <kbd id="keyRightLabel"></kbd></div></div>
-  <p class="small">移動キーは自由に変更できます。設定は他の設定と同じくローカルストレージへ保存されます。矢印キーは視点操作です。</p>
+  <p class="small">移動キーは自由に変更できます。設定は他の設定と同じくローカルストレージへ保存されます。矢印キーは視点操作です。🎮 PCパッドは左スティック＝移動、右スティック＝視点、R2/RT＝発射、OPTIONS/Menu＝一時停止、右スティック押し込み＝視点を中央へ戻します。</p>
   <div class="actions"><button id="saveSettings" class="primary">保存</button><button id="closeSettings" class="secondary">閉じる</button></div>
  </div>
 </div>
@@ -410,13 +411,15 @@ function validateQuestionCoverage(){
 }
 
 const STORAGE={scores:'studyAimScoresV1',settings:'studyAimSettingsV1',menuSelections:'studyAimMenuSelectionsV1'};
-const DEFAULT_SETTINGS={sensitivity:1,invertView:false,centerKey:'KeyC',up:'KeyW',left:'KeyA',down:'KeyS',right:'KeyD'};
+const DEFAULT_SETTINGS={sensitivity:1,gamepadSensitivity:1,invertView:false,centerKey:'KeyC',up:'KeyW',left:'KeyA',down:'KeyS',right:'KeyD'};
 let settings={...DEFAULT_SETTINGS};
 let game={active:false,questions:[],index:0,correct:0,shots:0,hits:0,missShots:0,startTime:0,elapsed:0,pausedTotal:0,pauseStarted:0,locked:false,cooldownUntil:0,targets:[],aimX:0,aimY:0,lastFrame:0,selectedGrades:[],selectedSubjects:[],targetCount:4,yaw:0,pitch:0,playerX:0,playerY:0,playerZ:0,moveKeys:{},projectedDots:[],touchStart:null,touchMoved:false,pausedByMenu:false,settingsFromPause:false,suppressPauseOnUnlock:false};
 
 const $=id=>document.getElementById(id);
 const canvas=$('gameCanvas'),ctx=canvas.getContext('2d');
 let DPR=1, cw=0,ch=0,MOBILE_TARGET_SCALE=1;
+const GAMEPAD_DEADZONE=.16;
+let gamepadState={fire:false,pause:false,center:false};
 
 async function init(){
  $('gradeChecks').innerHTML=Object.entries(GRADE_TERMS).map(([k,v])=>`<label class="check-card"><input type="checkbox" value="${k}" ${k==='g4_t1'?'checked':''}>${v.html}</label>`).join('');
@@ -541,13 +544,15 @@ function keyName(code){return code.replace('Key','').replace('Digit','').replace
 function loadSettings(){try{settings={...DEFAULT_SETTINGS,...JSON.parse(localStorage.getItem(STORAGE.settings)||'{}')}}catch{settings={...DEFAULT_SETTINGS}}}
 function updateSettingsUI(){
  $('sensitivity').value=settings.sensitivity;$('sensitivityValue').textContent=` ${Number(settings.sensitivity).toFixed(2)}`;
+ $('gamepadSensitivity').value=settings.gamepadSensitivity;$('gamepadSensitivityValue').textContent=` ${Number(settings.gamepadSensitivity).toFixed(2)}`;
  $('invertView').checked=Boolean(settings.invertView);
  $('sensitivity').oninput=()=>$('sensitivityValue').textContent=` ${Number($('sensitivity').value).toFixed(2)}`;
+ $('gamepadSensitivity').oninput=()=>$('gamepadSensitivityValue').textContent=` ${Number($('gamepadSensitivity').value).toFixed(2)}`;
  $('bindCenter').textContent=keyName(settings.centerKey);
  $('bindMoveUp').textContent=keyName(settings.up);$('bindMoveLeft').textContent=keyName(settings.left);$('bindMoveDown').textContent=keyName(settings.down);$('bindMoveRight').textContent=keyName(settings.right);
  $('keyUpLabel').textContent=`前:${keyName(settings.up)}`;$('keyLeftLabel').textContent=`左:${keyName(settings.left)}`;$('keyDownLabel').textContent=`後:${keyName(settings.down)}`;$('keyRightLabel').textContent=`右:${keyName(settings.right)}`;
 }
-function saveSettings(){settings.sensitivity=Number($('sensitivity').value);settings.invertView=$('invertView').checked;localStorage.setItem(STORAGE.settings,JSON.stringify(settings));updateSettingsUI();$('settingsModal').classList.add('hidden');if(game.settingsFromPause){$('pauseModal').classList.remove('hidden');game.settingsFromPause=false;}}
+function saveSettings(){settings.sensitivity=Number($('sensitivity').value);settings.gamepadSensitivity=Number($('gamepadSensitivity').value);settings.invertView=$('invertView').checked;localStorage.setItem(STORAGE.settings,JSON.stringify(settings));updateSettingsUI();$('settingsModal').classList.add('hidden');if(game.settingsFromPause){$('pauseModal').classList.remove('hidden');game.settingsFromPause=false;}}
 function closeSettingsModal(){$('settingsModal').classList.add('hidden');if(game.settingsFromPause){$('pauseModal').classList.remove('hidden');game.settingsFromPause=false;}}
 function setYoutubePauseInteraction(enabled){$('youtubeWidget')?.classList.toggle('game-paused',enabled);}
 function pauseGame(){if(!game.active||game.pausedByMenu||game.pauseStarted)return;game.pausedByMenu=true;game.pauseStarted=performance.now();releasePointerForUi();setYoutubePauseInteraction(true);$('pauseModal').classList.remove('hidden');}
@@ -681,14 +686,48 @@ function centerAim(){game.yaw=0;game.pitch=0;game.aimX=cw/2;game.aimY=ch/2;updat
 function moveAim(dx,dy){const step=.045*settings.sensitivity;const direction=settings.invertView?-1:1;game.yaw+=dx*step*direction;game.pitch=Math.max(-.62,Math.min(.62,game.pitch+dy*step*direction));}
 function updateCrosshair(){$('crosshair').style.left='50%';$('crosshair').style.top='50%'}
 function loop(now){
- const dt=Math.min(.04,(now-game.lastFrame)/1000||0);game.lastFrame=now;updatePlayerMovement(dt);drawArena(now,dt);
+ const dt=Math.min(.04,(now-game.lastFrame)/1000||0);game.lastFrame=now;updateGamepad(dt);updatePlayerMovement(dt);drawArena(now,dt);
  if(game.active){const pausedNow=game.pauseStarted?now-game.pauseStarted:0;$('timerText').textContent=formatTime(now-game.startTime-game.pausedTotal-pausedNow);updateCooldown(now)}requestAnimationFrame(loop);
 }
 
+function gamepadAxis(value){
+ const v=Number(value)||0;
+ const a=Math.abs(v);
+ if(a<=GAMEPAD_DEADZONE)return 0;
+ return Math.sign(v)*(a-GAMEPAD_DEADZONE)/(1-GAMEPAD_DEADZONE);
+}
+function gamepadButtonPressed(button){return Boolean(button&&(button.pressed||button.value>.5));}
+function updateGamepad(dt){
+ const pads=navigator.getGamepads?.();
+ const pad=pads&&[...pads].find(Boolean);
+ if(!pad){gamepadState.fire=false;gamepadState.pause=false;gamepadState.center=false;return;}
+ const fireNow=gamepadButtonPressed(pad.buttons?.[7]);       // R2 / RT
+ const pauseNow=gamepadButtonPressed(pad.buttons?.[9]);     // OPTIONS / Menu
+ const centerNow=gamepadButtonPressed(pad.buttons?.[11]);   // 右スティック押し込み
+ if(game.active){
+  if(pauseNow&&!gamepadState.pause){
+   if(game.pausedByMenu)resumeGame();
+   else if(!game.pauseStarted&&!game.locked)pauseGame();
+  }
+  if(!game.pausedByMenu&&!game.pauseStarted&&!game.locked){
+   const direction=settings.invertView?-1:1;
+   const lookX=gamepadAxis(pad.axes?.[2]);
+   const lookY=gamepadAxis(pad.axes?.[3]);
+   const lookSpeed=2.25*Number(settings.gamepadSensitivity||1);
+   game.yaw+=lookX*lookSpeed*dt*direction;
+   game.pitch=Math.max(-.62,Math.min(.62,game.pitch+lookY*lookSpeed*dt*direction));
+   if(centerNow&&!gamepadState.center)centerAim();
+   if(fireNow&&!gamepadState.fire)fire();
+  }
+ }
+ gamepadState.fire=fireNow;gamepadState.pause=pauseNow;gamepadState.center=centerNow;
+}
 function updatePlayerMovement(dt){
  if(!game.active||game.pausedByMenu||game.pauseStarted||game.locked)return;
  let forward=(game.moveKeys[settings.up]?1:0)-(game.moveKeys[settings.down]?1:0);
  let strafe=(game.moveKeys[settings.right]?1:0)-(game.moveKeys[settings.left]?1:0);
+ const pads=navigator.getGamepads?.();const pad=pads&&[...pads].find(Boolean);
+ if(pad){strafe+=gamepadAxis(pad.axes?.[0]);forward-=gamepadAxis(pad.axes?.[1]);}
  if(!forward&&!strafe)return;
  const length=Math.hypot(forward,strafe)||1;forward/=length;strafe/=length;
  const speed=5.4;

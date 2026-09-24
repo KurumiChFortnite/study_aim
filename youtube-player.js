@@ -98,6 +98,15 @@
     return tied[Math.floor(Math.random() * tied.length)];
   }
 
+  function chooseLatestVideo() {
+    const candidates = state.catalog.filter(video => !state.unavailable.has(video.videoId));
+    if (!candidates.length) return null;
+    let latestTime = -Infinity;
+    for (const video of candidates) latestTime = Math.max(latestTime, Date.parse(video.publishedAt) || 0);
+    const latest = candidates.filter(video => (Date.parse(video.publishedAt) || 0) === latestTime);
+    return latest[Math.floor(Math.random() * latest.length)];
+  }
+
   function markShown(video) {
     const stats = videoStats(video);
     stats.impressions += 1;
@@ -391,7 +400,7 @@
     setStatus(config.messages.loading);
     try {
       await loadCatalog();
-      displayVideo(chooseVideo(null));
+      displayVideo(chooseLatestVideo());
       loadIframeApi();
     } catch (error) {
       console.warn('YouTube catalog load failed:', error);

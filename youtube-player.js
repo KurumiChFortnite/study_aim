@@ -15,6 +15,7 @@
     isPlaying: false,
     lastPlaybackTick: 0,
     playbackTimer: 0,
+    hiddenPlayTimer: 0,
     volumeTick: 0,
     unavailable: new Set(),
     settings: loadJson(config.storage.settings, {
@@ -214,12 +215,17 @@
     const playerState = window.YT && window.YT.PlayerState;
     if (!playerState) return;
     if (event.data === playerState.PLAYING) {
+      clearTimeout(state.hiddenPlayTimer);
+      state.hiddenPlayTimer = 0;
       startPlaybackClock();
       return;
     }
     stopPlaybackClock();
     if (event.data === playerState.ENDED) {
+      clearTimeout(state.hiddenPlayTimer);
+      state.hiddenPlayTimer = 0;
       const previousId = state.current && state.current.videoId;
+      restoreFromHidden();
       showTemporary(elements.event, config.messages.ended);
       displayVideo(chooseVideo(previousId));
     }
@@ -229,6 +235,7 @@
     const failedId = state.current && state.current.videoId;
     if (failedId) state.unavailable.add(failedId);
     stopPlaybackClock();
+    restoreFromHidden();
     const replacement = chooseVideo(failedId);
     if (replacement) displayVideo(replacement);
     else setStatus(config.messages.loadError, true);
@@ -286,6 +293,46 @@
     });
     clampWidgetToViewport();
     saveSettings();
+  }
+
+  function restoreFromHidden() {
+    clearTimeout(state.hiddenPlayTimer);
+    state.hiddenPlayTimer = 0;
+    if (!elements.widget.classList.contains('youtube-hidden')) return;
+    elements.widget.classList.remove('youtube-hidden');
+    applySize(state.settings.size, false);
+  }
+
+  function hidePlayer() {
+    if (!state.playerReady || !state.player || !window.YT?.PlayerState) {
+      setStatus(config.messages.loadError, true);
+      return;
+    }
+    let playerState;
+    try { playerState = state.player.getPlayerState(); }
+    catch (_) { setStatus(config.messages.loadError, true); return; }
+    if (playerState !== window.YT.PlayerState.PLAYING) {
+      // このクリックから再生する場合だけ消音する。既に再生中なら音状態を変えない。
+      try {
+        if (!window.StudyAimYouTubeMute?.setMuted) throw new Error('mute control unavailable');
+        window.StudyAimYouTubeMute.setMuted(true);
+        state.player.playVideo();
+      } catch (_) {
+        setStatus(config.messages.playBlocked, true);
+        return;
+      }
+      state.hiddenPlayTimer = window.setTimeout(() => {
+        state.hiddenPlayTimer = 0;
+        let isPlaying = false;
+        try { isPlaying = state.player.getPlayerState() === window.YT.PlayerState.PLAYING; }
+        catch (_) {}
+        if (!isPlaying) {
+          restoreFromHidden();
+          setStatus(config.messages.playBlocked, true);
+        }
+      }, 4000);
+    }
+    elements.widget.classList.add('youtube-hidden');
   }
 
   function rememberPosition() {
@@ -348,6 +395,88 @@
     elements.dragHandle.addEventListener('pointercancel', finish);
   }
 
+  function setupHiddenRestoreDrag() {
+    const button = elements.hiddenRestore;
+    let drag = null;
+    let suppressClickUntil = 0;
+    button.style.touchAction = 'none';
+    button.style.userSelect = 'none';
+    button.style.cursor = 'move';
+
+    function begin(x, y, id) {
+      if (!elements.widget.classList.contains('youtube-hidden')) return false;
+      const rect = elements.widget.getBoundingClientRect();
+      drag = {id, startX: x, startY: y, dx: x - rect.left, dy: y - rect.top, moved: false};
+      return true;
+    }
+
+    function move(x, y, id) {
+      if (!drag || drag.id !== id || !elements.widget.classList.contains('youtube-hidden')) return false;
+      if (Math.hypot(x - drag.startX, y - drag.startY) > 7) drag.moved = true;
+      if (!drag.moved) return false;
+      const rect = elements.widget.getBoundingClientRect();
+      const margin = 6;
+      const left = Math.max(margin, Math.min(x - drag.dx, window.innerWidth - rect.width - margin));
+      const top = Math.max(margin, Math.min(y - drag.dy, window.innerHeight - rect.height - margin));
+      elements.widget.style.left = `${left}px`;
+      elements.widget.style.top = `${top}px`;
+      elements.widget.style.right = 'auto';
+      elements.widget.style.bottom = 'auto';
+      return true;
+    }
+
+    function finish(id) {
+      if (!drag || drag.id !== id) return null;
+      const moved = drag.moved;
+      drag = null;
+      if (moved) {
+        rememberPosition();
+        suppressClickUntil = Date.now() + 700;
+      }
+      return moved;
+    }
+
+    button.addEventListener('touchstart', event => {
+      if (event.touches.length !== 1) return;
+      const touch = event.touches[0];
+      if (begin(touch.clientX, touch.clientY, 'touch')) event.preventDefault();
+    }, {capture: true, passive: false});
+    button.addEventListener('touchmove', event => {
+      if (event.touches.length !== 1 || !drag) return;
+      const touch = event.touches[0];
+      if (move(touch.clientX, touch.clientY, 'touch')) event.preventDefault();
+    }, {capture: true, passive: false});
+    button.addEventListener('touchend', event => {
+      if (!drag) return;
+      const moved = finish('touch');
+      event.preventDefault();
+      event.stopPropagation();
+      if (moved === false) restoreFromHidden();
+    }, {capture: true, passive: false});
+    button.addEventListener('touchcancel', event => {
+      if (drag) { finish('touch'); event.preventDefault(); }
+    }, {capture: true, passive: false});
+
+    button.addEventListener('pointerdown', event => {
+      if (event.pointerType === 'touch' || event.button !== 0) return;
+      if (begin(event.clientX, event.clientY, event.pointerId)) button.setPointerCapture?.(event.pointerId);
+    }, true);
+    button.addEventListener('pointermove', event => {
+      if (event.pointerType === 'touch') return;
+      if (move(event.clientX, event.clientY, event.pointerId)) { event.preventDefault(); event.stopPropagation(); }
+    }, true);
+    button.addEventListener('pointerup', event => {
+      if (event.pointerType === 'touch') return;
+      if (finish(event.pointerId)) { event.preventDefault(); event.stopPropagation(); }
+    }, true);
+    button.addEventListener('pointercancel', event => {
+      if (event.pointerType !== 'touch') finish(event.pointerId);
+    }, true);
+    button.addEventListener('click', event => {
+      if (Date.now() < suppressClickUntil) { event.preventDefault(); event.stopImmediatePropagation(); }
+    }, true);
+  }
+
   function bindUi() {
     elements.next.addEventListener('click', () => {
       const previousId = state.current && state.current.videoId;
@@ -356,6 +485,8 @@
       displayVideo(chooseVideo(previousId));
     });
     elements.restore.addEventListener('click', () => applySize(state.settings.size, false));
+    elements.hide.addEventListener('click', hidePlayer);
+    elements.hiddenRestore.addEventListener('click', restoreFromHidden);
     document.querySelectorAll('[data-youtube-size]').forEach(button => {
       button.addEventListener('click', () => applySize(button.dataset.youtubeSize));
     });
@@ -369,6 +500,7 @@
       persistVolume();
     });
     setupDrag();
+    setupHiddenRestoreDrag();
   }
 
   async function loadCatalog() {
@@ -387,6 +519,8 @@
     elements.widget = document.getElementById('youtubeWidget');
     elements.dragHandle = document.getElementById('youtubeDragHandle');
     elements.restore = document.getElementById('youtubeRestoreBtn');
+    elements.hide = document.getElementById('youtubeHideBtn');
+    elements.hiddenRestore = document.getElementById('youtubeHiddenRestoreBtn');
     elements.next = document.getElementById('youtubeNextBtn');
     elements.openLink = document.getElementById('youtubeOpenLink');
     elements.newBadge = document.getElementById('youtubeNewBadge');

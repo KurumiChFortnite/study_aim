@@ -93,6 +93,11 @@ button{cursor:pointer}
 #youtubeWidget.minimized .youtube-dragbar,#youtubeWidget.minimized .youtube-subtitle,#youtubeWidget.minimized .youtube-status,#youtubeWidget.minimized .youtube-controls,#youtubeWidget.minimized .youtube-copy{display:none}
 #youtubeWidget.minimized .youtube-new{display:none}
 #youtubeWidget.minimized .youtube-body{padding:0}
+#youtubeWidget.youtube-hidden{width:auto;max-height:none;overflow:visible;background:transparent;border:0;box-shadow:none}
+#youtubeWidget.youtube-hidden .youtube-shell{position:fixed;left:0;top:0;width:240px;opacity:0;pointer-events:none;clip-path:inset(100%)}
+#youtubeWidget.youtube-hidden .youtube-restore,#youtubeWidget.youtube-hidden .youtube-mini-mute{display:none}
+#youtubeWidget.youtube-hidden #youtubeHiddenRestoreBtn{display:block}
+.youtube-hidden-restore{display:none;border:1px solid #35d6ff88;border-radius:9px;padding:8px 11px;background:#19344ef5;color:#eef7ff;font:700 12px system-ui;box-shadow:0 8px 25px #0008;cursor:pointer}
 #mobileControls{display:none;flex:none;height:190px;background:#0b1827;border-top:1px solid #29445e;padding:10px;gap:12px;touch-action:none}
 .aim-pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(3,52px);gap:5px;align-content:center;justify-content:center;flex:1}
 .mobile-btn{border:1px solid #41627d;background:#17314a;color:#fff;border-radius:12px;font-size:22px;font-weight:900;box-shadow:inset 0 -4px 0 #091522}
@@ -184,6 +189,7 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
 <aside id="youtubeWidget" aria-label="YouTube動画プレイヤー">
  <button id="youtubeRestoreBtn" class="youtube-restore" type="button">📺 メニューを表示</button>
  <button id="youtubeMiniMuteBtn" class="youtube-mute youtube-mini-mute" type="button" aria-label="動画の消音切替">🔊 音あり</button>
+ <button id="youtubeHiddenRestoreBtn" class="youtube-hidden-restore" type="button">📺 表示</button>
  <div class="youtube-shell">
   <div id="youtubeDragHandle" class="youtube-dragbar"><strong>🎧 動画を流しながらAIM練習！</strong><span>ここをドラッグ</span></div>
   <div class="youtube-body">
@@ -195,7 +201,7 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
     <button id="youtubeMuteBtn" class="youtube-mute" type="button">🔊 音あり</button>
     <a id="youtubeOpenLink" href="#" target="_blank" rel="noopener noreferrer">💬 要望を書く ↗</a>
     <div class="youtube-size-controls" aria-label="動画サイズ">
-     <button type="button" data-youtube-size="minimized">▁ 最小</button><button type="button" data-youtube-size="small">小</button><button type="button" data-youtube-size="medium">中</button><button type="button" data-youtube-size="large">大</button>
+     <button id="youtubeHideBtn" type="button">非表示</button><button type="button" data-youtube-size="minimized">▁ 最小</button><button type="button" data-youtube-size="small">小</button><button type="button" data-youtube-size="medium">中</button><button type="button" data-youtube-size="large">大</button>
     </div>
    </div>
    <div class="youtube-copy">
@@ -886,6 +892,7 @@ init();
   try{localStorage.setItem(KEY,muted?'1':'0');}catch(e){}
   refresh();
  }
+ window.StudyAimYouTubeMute=Object.freeze({setMuted(value){muted=Boolean(value);apply();}});
  function toggle(e){e.preventDefault();e.stopPropagation();muted=!muted;apply();}
  normalBtn.addEventListener('click',toggle);
  miniBtn.addEventListener('click',toggle);

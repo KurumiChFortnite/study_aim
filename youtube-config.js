@@ -20,6 +20,7 @@ window.STUDY_AIM_YOUTUBE_CONFIG = Object.freeze({
     loading: '動画を読み込んでいます…',
     ready: '▶ 再生はYouTubeプレイヤーから操作してください',
     loadError: '動画を読み込めませんでした（AIM練習はそのまま遊べます）',
+    playBlocked: '再生を開始できませんでした。プレイヤーの再生ボタンを押してください',
     noVideos: '表示できる動画がありません（AIM練習はそのまま遊べます）'
   })
 });

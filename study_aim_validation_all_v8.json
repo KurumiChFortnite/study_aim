@@ -1,23 +1,23 @@
 {
   "Metadata": {
-    "Title": "Study Aim Training v10 内容・構造再監査",
+    "Title": "Study Aim Training v11 内容・構造再監査",
     "Status": "PASS",
-    "QuestionCount": 3673,
-    "ReviewedAt": "2026-09-25"
+    "QuestionCount": 4167,
+    "ReviewedAt": "2026-09-27"
   },
   "Errors": [],
   "Warnings": [
-    "同一設問の反復グループが372件あります。異なる学期・学年での復習問題を含みます。"
+    "同一設問の反復グループが378件あります。異なる学期・学年での復習問題を含みます。"
   ],
   "Metrics": {
     "RemovedMisassignedFallbackQuestions": 5180,
     "RemovedOutOfSequenceQuestions": 26,
     "RemovedSameGradeRepeatedQuestions": 252,
     "AddedCuratedQuestions": 131,
-    "MinimumQuestionsPerGradeTermSubject": 15,
-    "UniqueIds": 3673,
-    "ExactDuplicateQuestionTextGroups": 372,
-    "ExactDuplicateQuestionTextExcess": 882,
+    "MinimumQuestionsPerGradeTermSubject": 25,
+    "UniqueIds": 4167,
+    "ExactDuplicateQuestionTextGroups": 378,
+    "ExactDuplicateQuestionTextExcess": 888,
     "ExactDuplicateCompleteItemGroups": 85,
     "ExactDuplicateCompleteItemExcess": 95,
     "EmptyQuestionTexts": 0,
@@ -25,6 +25,7 @@
     "DuplicateChoiceItems": 0,
     "EditorialWordingMatches": 0,
     "FractionalPersonAnswers": 0,
-    "MalformedEnglishDistractorMatches": 0
+    "MalformedEnglishDistractorMatches": 0,
+    "AddedCurriculumExpansionQuestions": 494
   }
 }

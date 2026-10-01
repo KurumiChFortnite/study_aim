@@ -338,6 +338,8 @@ function setDataStatus(message,state='warn'){
 }
 
 function mapExternalQuestion(raw,index){
+ const questionText=String(raw.QuestionText??'');
+ if(!questionText.trim())throw new Error(`問題文が空です: ${raw.QuestionId||index}`);
  const choices=[raw.Choice1,raw.Choice2,raw.Choice3,raw.Choice4].map(v=>String(v??''));
  let answer=Number(raw.CorrectChoiceIndex)-1;
  if(!Number.isInteger(answer)||answer<0||answer>3||choices[answer]!==String(raw.CorrectAnswer??'')){
@@ -358,7 +360,7 @@ function mapExternalQuestion(raw,index){
   grade,term,difficulty,subject,
   unit:String(raw.Unit||''),skill:String(raw.Skill||''),
   tier:String(raw.Tier||''),questionType:String(raw.QuestionType||''),
-  q:String(raw.QuestionText||''),choices,answer,ex:String(raw.Explanation||''),
+  q:questionText,choices,answer,ex:String(raw.Explanation||''),
   confidence:String(raw.CurriculumConfidence||''),masteryRole:String(raw.MasteryRole||'')
  };
 }

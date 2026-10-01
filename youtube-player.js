@@ -16,6 +16,8 @@
     lastPlaybackTick: 0,
     playbackTimer: 0,
     hiddenPlayTimer: 0,
+    wasPlayingBeforeHide: false,
+    pauseOnRestorePending: false,
     volumeTick: 0,
     unavailable: new Set(),
     settings: loadJson(config.storage.settings, {
@@ -130,6 +132,7 @@
   }
 
   function displayVideo(video) {
+    state.pauseOnRestorePending = false;
     if (!video) {
       state.current = null;
       setStatus(config.messages.noVideos, true);
@@ -146,7 +149,20 @@
   }
 
   function showTemporary(element, message) {
-    element.textContent = message;
+    const splitAfter = 'やってください！';
+    const splitIndex = message.indexOf(splitAfter);
+    if (element === elements.reminder && splitIndex >= 0) {
+      const boundary = splitIndex + splitAfter.length;
+      element.replaceChildren();
+      [message.slice(0, boundary), message.slice(boundary)].forEach(text => {
+        const part = document.createElement('span');
+        part.className = 'reminder-part';
+        part.textContent = text;
+        element.appendChild(part);
+      });
+    } else {
+      element.textContent = message;
+    }
     element.classList.add('show');
     clearTimeout(element._hideTimer);
     element._hideTimer = setTimeout(() => element.classList.remove('show'), config.messageDurationMs);
@@ -215,12 +231,20 @@
     const playerState = window.YT && window.YT.PlayerState;
     if (!playerState) return;
     if (event.data === playerState.PLAYING) {
+      // playVideo() が遅れて反映された場合も、表示時の一時停止要求を守る。
+      if (state.pauseOnRestorePending) {
+        state.player.pauseVideo();
+        return;
+      }
       clearTimeout(state.hiddenPlayTimer);
       state.hiddenPlayTimer = 0;
       startPlaybackClock();
       return;
     }
     stopPlaybackClock();
+    if (event.data === playerState.PAUSED || event.data === playerState.ENDED) {
+      state.pauseOnRestorePending = false;
+    }
     if (event.data === playerState.ENDED) {
       clearTimeout(state.hiddenPlayTimer);
       state.hiddenPlayTimer = 0;
@@ -232,6 +256,7 @@
   }
 
   function onPlayerError() {
+    state.pauseOnRestorePending = false;
     const failedId = state.current && state.current.videoId;
     if (failedId) state.unavailable.add(failedId);
     stopPlaybackClock();
@@ -295,15 +320,26 @@
     saveSettings();
   }
 
-  function restoreFromHidden() {
+  function restoreFromHidden(restorePlayback = false) {
     clearTimeout(state.hiddenPlayTimer);
     state.hiddenPlayTimer = 0;
     if (!elements.widget.classList.contains('youtube-hidden')) return;
+    const shouldPause = restorePlayback && !state.wasPlayingBeforeHide;
+    state.wasPlayingBeforeHide = false;
     elements.widget.classList.remove('youtube-hidden');
     applySize(state.settings.size, false);
+    if (shouldPause) {
+      state.pauseOnRestorePending = true;
+      try { state.player.pauseVideo(); }
+      catch (_) {
+        state.pauseOnRestorePending = false;
+        setStatus(config.messages.loadError, true);
+      }
+    }
   }
 
   function hidePlayer() {
+    if (elements.widget.classList.contains('youtube-hidden')) return;
     if (!state.playerReady || !state.player || !window.YT?.PlayerState) {
       setStatus(config.messages.loadError, true);
       return;
@@ -311,13 +347,16 @@
     let playerState;
     try { playerState = state.player.getPlayerState(); }
     catch (_) { setStatus(config.messages.loadError, true); return; }
-    if (playerState !== window.YT.PlayerState.PLAYING) {
+    state.wasPlayingBeforeHide = playerState === window.YT.PlayerState.PLAYING;
+    state.pauseOnRestorePending = false;
+    if (!state.wasPlayingBeforeHide) {
       // このクリックから再生する場合だけ消音する。既に再生中なら音状態を変えない。
       try {
         if (!window.StudyAimYouTubeMute?.setMuted) throw new Error('mute control unavailable');
         window.StudyAimYouTubeMute.setMuted(true);
         state.player.playVideo();
       } catch (_) {
+        state.wasPlayingBeforeHide = false;
         setStatus(config.messages.playBlocked, true);
         return;
       }
@@ -451,7 +490,7 @@
       const moved = finish('touch');
       event.preventDefault();
       event.stopPropagation();
-      if (moved === false) restoreFromHidden();
+      if (moved === false) restoreFromHidden(true);
     }, {capture: true, passive: false});
     button.addEventListener('touchcancel', event => {
       if (drag) { finish('touch'); event.preventDefault(); }
@@ -486,7 +525,7 @@
     });
     elements.restore.addEventListener('click', () => applySize(state.settings.size, false));
     elements.hide.addEventListener('click', hidePlayer);
-    elements.hiddenRestore.addEventListener('click', restoreFromHidden);
+    elements.hiddenRestore.addEventListener('click', () => restoreFromHidden(true));
     document.querySelectorAll('[data-youtube-size]').forEach(button => {
       button.addEventListener('click', () => applySize(button.dataset.youtubeSize));
     });

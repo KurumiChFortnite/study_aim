@@ -59,7 +59,8 @@ button{cursor:pointer}
 #statusToast{position:absolute;left:50%;top:18px;transform:translateX(-50%);padding:10px 18px;border-radius:999px;background:#10243aee;border:1px solid #42637e;font-weight:800;opacity:0;transition:.18s;pointer-events:none;white-space:nowrap}
 #statusToast.show{opacity:1}
 #youtubeReminderToast,#youtubeEventToast{position:fixed;z-index:19;max-width:min(440px,calc(100vw - 28px));padding:10px 14px;border-radius:12px;background:#10243af2;border:1px solid #35d6ff;color:#fff;font-weight:800;box-shadow:0 10px 35px #0009;opacity:0;transition:opacity .22s,transform .22s;pointer-events:none}
-#youtubeReminderToast{left:50%;top:14px;z-index:30;transform:translate(-50%,-10px);text-align:center}
+#youtubeReminderToast{left:50%;top:14px;z-index:30;transform:translate(-50%,-10px);text-align:center;font-size:clamp(20px,3vw,28px);line-height:1.5;width:max-content;max-width:calc(100vw - 28px);padding:16px 22px;display:flex;flex-wrap:wrap;justify-content:center;column-gap:.25em}
+#youtubeReminderToast .reminder-part{max-width:100%}
 #youtubeEventToast{right:14px;bottom:68px;transform:translateY(10px);border-color:#ffd45a}
 #youtubeReminderToast.show{opacity:1;transform:translate(-50%,0);animation:youtubeReminderShake .52s ease-in-out 2}
 #youtubeEventToast.show{opacity:1;transform:translateY(0)}
@@ -112,6 +113,7 @@ button{cursor:pointer}
 .pause-actions button{width:100%}
 .setting-row{display:grid;grid-template-columns:1fr 1.2fr;gap:12px;align-items:center;margin:12px 0}
 .setting-row input[type=range]{width:100%}
+.setting-row select{width:100%;padding:9px 12px;border:1px solid #355774;border-radius:10px;background:#19344e;color:var(--text)}
 kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:3px 8px;border-radius:6px}
 .result-big{text-align:center;font-size:46px;font-weight:1000;color:var(--gold)}
 .result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
@@ -130,8 +132,8 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
  #arenaWrap{min-height:260px}
  #youtubeWidget{--yt-player-width:240px;max-height:55vh}
  .youtube-copy{display:none}.youtube-dragbar span{display:none}
- #youtubeReminderToast,#youtubeEventToast{font-size:12px}
- #youtubeReminderToast{top:8px}
+ #youtubeEventToast{font-size:12px}
+ #youtubeReminderToast{top:8px;font-size:20px;padding:14px 16px}
  #youtubeEventToast{right:8px;bottom:58px}
 }
 @media(max-height:700px) and (max-width:720px){#topHud{height:118px}#mobileControls{height:155px}.aim-pad{grid-template-columns:repeat(3,55px);grid-template-rows:repeat(3,40px)}#fireBtn{width:105px}}
@@ -146,7 +148,7 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
     <h1>STUDY AIM</h1>
     <a class="channel-banner" href="https://youtube.com/channel/UC95aAK2efSZvenj0l9ZD-dQ" target="_blank" rel="noopener noreferrer" aria-label="くるみちゃんねるをYouTubeで開く"><img src="./kurumich.png" alt="くるみちゃんねる"></a>
    </div>
-   <p>勉強しながらエイム練習。15問のクリアタイムに挑戦！</p>
+   <p>勉強しながらエイム練習。10問のクリアタイムに挑戦！</p>
   </div>
   <p class="small" style="text-align:center;margin:0 0 12px;color:#c9d9e7">⚠️ 問題・解答には誤りが含まれる可能性があります。本ゲームは自己責任でご利用いただき、くるみちゃんねるでは責任を負いかねます。</p>
 
@@ -172,6 +174,20 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
    </div>
   </div>
   <div class="panel">
+   <h2>④ 距離</h2>
+   <div class="subject-grid" id="distanceModeChecks">
+    <label class="check-card"><input type="radio" name="distanceMode" value="fixed" checked><span class="grade-label">一定<br><small>これまでと同じ距離</small></span></label>
+    <label class="check-card"><input type="radio" name="distanceMode" value="random"><span class="grade-label">ランダム<br><small>問題ごとに1～2倍の距離</small></span></label>
+   </div>
+  </div>
+  <div class="panel">
+   <h2>⑤ ストッピング</h2>
+   <div class="subject-grid" id="stoppingModeChecks">
+    <label class="check-card"><input type="radio" name="stoppingMode" value="required"><span class="grade-label">必要<br><small>移動中は弾が大きくずれる</small></span></label>
+    <label class="check-card"><input type="radio" name="stoppingMode" value="straight" checked><span class="grade-label">常にまっすぐ<br><small>移動中も照準どおり</small></span></label>
+   </div>
+  </div>
+  <div class="panel">
    <h2>ハイスコア（ベストタイム）</h2>
    <div id="scoreList" class="score-list"></div>
    <div class="actions">
@@ -181,7 +197,7 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
    </div>
   </div>
   <div class="panel small">
-   <b>遊び方：</b> 3Dルーム内の的を中央照準で狙います。PCはWASDで移動、マウスで視点操作、クリックで発射します。矢印キーでも視点を動かせます。スマホはスワイプで視点移動、短いタップで発射します。1つの答えに対応する選択数の的をすべて撃つと判定され、空振りすると0.75秒間撃てません。
+   <b>遊び方：</b> 3Dルーム内の的を中央照準で狙います。PCはWASDで移動、マウスで視点操作、クリックで発射します。矢印キーでも視点を動かせます。スマホはスワイプで視点移動、短いタップで発射します。ストッピングが「必要」のときは移動を止めてから撃ちましょう。射撃すると銃口から弾が飛んでいきます。1つの答えに対応する選択数の的をすべて撃つと判定され、空振りすると0.4秒間撃てません。
   </div>
  </div>
 </section>
@@ -218,9 +234,9 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
 <section id="gameScreen" class="screen hidden">
  <header id="topHud">
   <button id="mobileHomeBtn" type="button">🏠 ホーム</button>
-  <div class="hud-box"><span class="hud-label">進行</span><span class="hud-value"><span id="qNumber">1</span> / 15</span><span class="hud-label">正解 <span id="correctCount">0</span></span></div>
+  <div class="hud-box"><span class="hud-label">進行</span><span class="hud-value"><span id="qNumber">1</span> / 10</span><span class="hud-label">正解 <span id="correctCount">0</span></span></div>
   <div class="hud-box"><div id="questionText">問題文</div><div id="questionMeta"></div></div>
-  <div class="hud-box"><span class="hud-label">TIME</span><span class="hud-value" id="timerText">00:00.000</span><span class="hud-label">命中率 <span id="accuracyText">100%</span></span></div>
+  <div class="hud-box"><span class="hud-label">TIME</span><span class="hud-value" id="timerText">00:00.000</span><span class="hud-label">命中率 <span id="accuracyText">100%</span></span><span class="hud-label">描画 <span id="fpsText">--</span> FPS / 最長 <span id="frameTimeText">--</span> ms</span></div>
  </header>
  <div id="arenaWrap">
   <canvas id="gameCanvas"></canvas>
@@ -253,6 +269,9 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
 <div id="settingsModal" class="modal-bg hidden">
  <div class="modal">
   <h2>設定</h2>
+  <div class="setting-row"><label for="fpsLimit">FPS上限</label><select id="fpsLimit"><option value="0">自動（上限なし）</option><option value="30">30 FPS</option><option value="60">60 FPS</option><option value="120">120 FPS</option><option value="144">144 FPS</option><option value="240">240 FPS</option><option value="360">360 FPS</option></select></div>
+  <div class="setting-row"><label for="renderQuality">描画品質</label><select id="renderQuality"><option value="0.75">軽量（カクつくとき）</option><option value="1">標準</option><option value="2">高精細（高負荷）</option></select></div>
+  <p class="small">描画：<span id="settingsFpsText">--</span> FPS / 直近1秒の最長フレーム間隔：<span id="settingsFrameTimeText">--</span> ms。平均FPSが高くても、この間隔が大きくなるとカクつきます。FPSは画面の更新回数ではなく描画処理の回数です。端末や画面の性能によって上限に届かない場合があります。</p>
   <div class="setting-row"><label>視点感度</label><div><input id="sensitivity" type="range" min="0.03" max="2.5" step="0.01"><span id="sensitivityValue"></span></div></div>
   <div class="setting-row"><label>🎮 パッド視点感度</label><div><input id="gamepadSensitivity" type="range" min="0.3" max="3.0" step="0.05"><span id="gamepadSensitivityValue"></span></div></div>
   <div class="setting-row"><label>視点操作</label><label class="check-card" style="margin:0"><input id="invertView" type="checkbox">上下左右を反転する</label></div>
@@ -272,7 +291,7 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
 </div>
 
 <div id="resultModal" class="modal-bg hidden">
- <div class="modal"><h2 style="text-align:center">15問クリア！</h2><div id="resultTime" class="result-big"></div><div class="result-grid"><div class="result-item">正解数<b id="resultCorrect"></b></div><div class="result-item">命中率<b id="resultAccuracy"></b></div><div class="result-item">ミス射撃<b id="resultMisses"></b></div></div><p id="recordMessage" style="text-align:center"></p><div class="actions"><button id="retryBtn" class="primary">同じ設定でもう一度</button><button id="menuBtn" class="secondary">メニューへ</button></div></div>
+ <div class="modal"><h2 style="text-align:center">10問クリア！</h2><div id="resultTime" class="result-big"></div><div class="result-grid"><div class="result-item">正解数<b id="resultCorrect"></b></div><div class="result-item">命中率<b id="resultAccuracy"></b></div><div class="result-item">ミス射撃<b id="resultMisses"></b></div></div><p id="recordMessage" style="text-align:center"></p><div class="actions"><button id="retryBtn" class="primary">同じ設定でもう一度</button><button id="menuBtn" class="secondary">メニューへ</button></div></div>
 </div>
 
 <script src="./youtube-config.js"></script>
@@ -418,15 +437,30 @@ function validateQuestionCoverage(){
 }
 
 const STORAGE={scores:'studyAimScoresV1',settings:'studyAimSettingsV1',menuSelections:'studyAimMenuSelectionsV1'};
-const DEFAULT_SETTINGS={sensitivity:1,gamepadSensitivity:1,invertView:false,centerKey:'KeyC',up:'KeyW',left:'KeyA',down:'KeyS',right:'KeyD'};
+const QUESTION_COUNT=10;
+const BASE_TARGET_DISTANCE=13.5;
+const MISS_COOLDOWN_MS=400;
+const BULLET_FLIGHT_MS=40;
+const FPS_LIMITS=[0,30,60,120,144,240,360];
+const RENDER_QUALITIES=[.75,1,2];
+const DEFAULT_SETTINGS={fpsLimit:0,renderQuality:1,sensitivity:1,gamepadSensitivity:1,invertView:false,centerKey:'KeyC',up:'KeyW',left:'KeyA',down:'KeyS',right:'KeyD'};
 let settings={...DEFAULT_SETTINGS};
-let game={active:false,questions:[],index:0,correct:0,shots:0,hits:0,missShots:0,startTime:0,elapsed:0,pausedTotal:0,pauseStarted:0,locked:false,cooldownUntil:0,targets:[],aimX:0,aimY:0,lastFrame:0,selectedGrades:[],selectedSubjects:[],targetCount:4,yaw:0,pitch:0,playerX:0,playerY:0,playerZ:0,moveKeys:{},projectedDots:[],touchStart:null,touchMoved:false,pausedByMenu:false,settingsFromPause:false,suppressPauseOnUnlock:false};
+let game={active:false,questions:[],index:0,correct:0,shots:0,hits:0,missShots:0,startTime:0,elapsed:0,pausedTotal:0,pauseStarted:0,locked:false,cooldownUntil:0,targets:[],aimX:0,aimY:0,lastFrame:0,selectedGrades:[],selectedSubjects:[],targetCount:4,distanceMode:'fixed',stoppingMode:'straight',textScale:1,yaw:0,pitch:0,playerX:0,playerY:0,playerZ:0,moveKeys:{},projectedDots:[],shotMarks:[],touchStart:null,touchMoved:false,pausedByMenu:false,settingsFromPause:false,suppressPauseOnUnlock:false};
 
 const $=id=>document.getElementById(id);
-const canvas=$('gameCanvas'),ctx=canvas.getContext('2d');
+const canvas=$('gameCanvas'),ctx=canvas.getContext('2d',{alpha:false});
 let DPR=1, cw=0,ch=0,MOBILE_TARGET_SCALE=1;
 const GAMEPAD_DEADZONE=.16;
 let gamepadState={fire:false,pause:false,center:false};
+const frameClock={nextDraw:0,lastDraw:0,lastHud:0,sampleStart:0,drawnFrames:0,maxFrameMs:0};
+const textLayouts=new WeakMap();
+const roomGrids=new Map();
+let skyGradient=null;
+const cameraRotation={yaw:NaN,pitch:NaN,cy:1,sy:0,cp:1,sp:0};
+const mouseLook={x:0,y:0};
+const QUESTION_TEXT_CHARS=32;
+const QUESTION_TEXT_SIZE=.34;
+const QUESTION_PANEL={x:0,y:5,z:12.8,rotY:0,w:14.8,h:2.8};
 
 async function init(){
  $('gradeChecks').innerHTML=Object.entries(GRADE_TERMS).map(([k,v])=>`<label class="check-card"><input type="checkbox" value="${k}" ${k==='g4_t1'?'checked':''}>${v.html}</label>`).join('');
@@ -440,7 +474,7 @@ async function init(){
  }
 }
 function bindEvents(){
- ['gradeChecks','subjectChecks','targetCountChecks'].forEach(id=>$(id).addEventListener('change',saveMenuSelections));
+ ['gradeChecks','subjectChecks','targetCountChecks','distanceModeChecks','stoppingModeChecks'].forEach(id=>$(id).addEventListener('change',saveMenuSelections));
  $('startBtn').onclick=()=>startGame(false);
  $('settingsBtn').onclick=()=>{game.settingsFromPause=false;$('settingsModal').classList.remove('hidden');};
  $('closeSettings').onclick=closeSettingsModal; $('saveSettings').onclick=saveSettings;
@@ -469,11 +503,7 @@ function bindEvents(){
  });
  document.addEventListener('mousemove',e=>{
   if(!game.active || document.pointerLockElement!==canvas)return;
-  const speed=.0022*settings.sensitivity;
-  // 通常：右へ動かすと右を見る、上へ動かすと上を見る
-  const direction=settings.invertView?-1:1;
-  game.yaw+=e.movementX*speed*direction;
-  game.pitch=Math.max(-.62,Math.min(.62,game.pitch+e.movementY*speed*direction));
+  mouseLook.x+=e.movementX;mouseLook.y+=e.movementY;
  });
 
  // スマホ：スワイプで視点移動、短いタップで発射
@@ -541,15 +571,19 @@ function loadMenuSelections(){
   if(Array.isArray(saved.grades)){const values=new Set(saved.grades);document.querySelectorAll('#gradeChecks input').forEach(input=>input.checked=values.has(input.value));}
   if(Array.isArray(saved.subjects)){const values=new Set(saved.subjects);document.querySelectorAll('#subjectChecks input').forEach(input=>input.checked=values.has(input.value));}
   const target=document.querySelector(`input[name="targetCount"][value="${Number(saved.targetCount)}"]`);if(target)target.checked=true;
+  const distance=document.querySelector(`input[name="distanceMode"][value="${saved.distanceMode}"]`);if(distance)distance.checked=true;
+  const stopping=document.querySelector(`input[name="stoppingMode"][value="${saved.stoppingMode}"]`);if(stopping)stopping.checked=true;
  }catch(e){console.warn('メニュー選択設定を復元できませんでした:',e);}
 }
 function saveMenuSelections(){
- const value={version:1,grades:selected('#gradeChecks input'),subjects:selected('#subjectChecks input'),targetCount:Number(document.querySelector('input[name="targetCount"]:checked')?.value)||4};
+ const value={version:1,grades:selected('#gradeChecks input'),subjects:selected('#subjectChecks input'),targetCount:Number(document.querySelector('input[name="targetCount"]:checked')?.value)||4,distanceMode:document.querySelector('input[name="distanceMode"]:checked')?.value||'fixed',stoppingMode:document.querySelector('input[name="stoppingMode"]:checked')?.value||'straight'};
  try{localStorage.setItem(STORAGE.menuSelections,JSON.stringify(value));}catch(e){console.warn('メニュー選択設定を保存できませんでした:',e);}
 }
 function keyName(code){return code.replace('Key','').replace('Digit','').replace('Space','スペース').replace('Arrow','矢印');}
-function loadSettings(){try{settings={...DEFAULT_SETTINGS,...JSON.parse(localStorage.getItem(STORAGE.settings)||'{}')}}catch{settings={...DEFAULT_SETTINGS}}}
+function loadSettings(){try{settings={...DEFAULT_SETTINGS,...JSON.parse(localStorage.getItem(STORAGE.settings)||'{}')}}catch{settings={...DEFAULT_SETTINGS}}if(!FPS_LIMITS.includes(settings.fpsLimit))settings.fpsLimit=0;if(!RENDER_QUALITIES.includes(settings.renderQuality))settings.renderQuality=1;}
 function updateSettingsUI(){
+ $('fpsLimit').value=settings.fpsLimit;
+ $('renderQuality').value=settings.renderQuality;
  $('sensitivity').value=settings.sensitivity;$('sensitivityValue').textContent=` ${Number(settings.sensitivity).toFixed(2)}`;
  $('gamepadSensitivity').value=settings.gamepadSensitivity;$('gamepadSensitivityValue').textContent=` ${Number(settings.gamepadSensitivity).toFixed(2)}`;
  $('invertView').checked=Boolean(settings.invertView);
@@ -559,7 +593,7 @@ function updateSettingsUI(){
  $('bindMoveUp').textContent=keyName(settings.up);$('bindMoveLeft').textContent=keyName(settings.left);$('bindMoveDown').textContent=keyName(settings.down);$('bindMoveRight').textContent=keyName(settings.right);
  $('keyUpLabel').textContent=`前:${keyName(settings.up)}`;$('keyLeftLabel').textContent=`左:${keyName(settings.left)}`;$('keyDownLabel').textContent=`後:${keyName(settings.down)}`;$('keyRightLabel').textContent=`右:${keyName(settings.right)}`;
 }
-function saveSettings(){settings.sensitivity=Number($('sensitivity').value);settings.gamepadSensitivity=Number($('gamepadSensitivity').value);settings.invertView=$('invertView').checked;localStorage.setItem(STORAGE.settings,JSON.stringify(settings));updateSettingsUI();$('settingsModal').classList.add('hidden');if(game.settingsFromPause){$('pauseModal').classList.remove('hidden');game.settingsFromPause=false;}}
+function saveSettings(){settings.fpsLimit=Number($('fpsLimit').value);settings.renderQuality=Number($('renderQuality').value);frameClock.nextDraw=0;frameClock.sampleStart=0;frameClock.drawnFrames=0;frameClock.maxFrameMs=0;settings.sensitivity=Number($('sensitivity').value);settings.gamepadSensitivity=Number($('gamepadSensitivity').value);settings.invertView=$('invertView').checked;localStorage.setItem(STORAGE.settings,JSON.stringify(settings));updateSettingsUI();resizeCanvas();$('settingsModal').classList.add('hidden');if(game.settingsFromPause){$('pauseModal').classList.remove('hidden');game.settingsFromPause=false;}}
 function closeSettingsModal(){$('settingsModal').classList.add('hidden');if(game.settingsFromPause){$('pauseModal').classList.remove('hidden');game.settingsFromPause=false;}}
 function setYoutubePauseInteraction(enabled){$('youtubeWidget')?.classList.toggle('game-paused',enabled);}
 function pauseGame(){if(!game.active||game.pausedByMenu||game.pauseStarted)return;game.pausedByMenu=true;game.pauseStarted=performance.now();releasePointerForUi();setYoutubePauseInteraction(true);$('pauseModal').classList.remove('hidden');}
@@ -578,12 +612,13 @@ function releasePointerForUi(){
 }
 function startGame(retry=false){
  if(!questionDataReady)return alert('問題JSONの読み込みが完了していません。');
- if(!retry){game.selectedGrades=selected('#gradeChecks input');game.selectedSubjects=selected('#subjectChecks input');game.targetCount=Number(document.querySelector('input[name="targetCount"]:checked')?.value)||4;}
+ if(!retry){game.selectedGrades=selected('#gradeChecks input');game.selectedSubjects=selected('#subjectChecks input');game.targetCount=Number(document.querySelector('input[name="targetCount"]:checked')?.value)||4;game.distanceMode=document.querySelector('input[name="distanceMode"]:checked')?.value||'fixed';game.stoppingMode=document.querySelector('input[name="stoppingMode"]:checked')?.value||'straight';}
  if(!game.selectedGrades.length)return alert('学年を1つ以上選んでください。');
  if(!game.selectedSubjects.length)return alert('教科を1つ以上選んでください。');
  let pool=QUESTIONS.filter(q=>game.selectedGrades.some(key=>{const advanced=key.endsWith('_adv');const base=advanced?key.slice(0,-4):key;return base===`${q.grade}_t${q.term}`&&(advanced?q.difficulty==='advanced':q.difficulty!=='advanced');})&&game.selectedSubjects.includes(q.subject));
  if(!pool.length)return alert('該当する問題がありません。学年または教科を変更してください。');
- game.questions=sampleQuestions(pool,15);game.index=0;game.correct=0;game.shots=0;game.hits=0;game.missShots=0;game.locked=false;game.cooldownUntil=0;game.active=true;game.pausedByMenu=false;game.playerX=0;game.playerY=0;game.playerZ=0;game.moveKeys={};game.startTime=performance.now();game.elapsed=0;game.pausedTotal=0;game.pauseStarted=0;setYoutubePauseInteraction(false);$('pauseModal').classList.add('hidden');
+ game.questions=sampleQuestions(pool,QUESTION_COUNT);game.index=0;game.correct=0;game.shots=0;game.hits=0;game.missShots=0;game.locked=false;game.cooldownUntil=0;game.active=true;game.pausedByMenu=false;game.playerX=0;game.playerY=0;game.playerZ=0;game.moveKeys={};game.shotMarks=[];game.startTime=performance.now();game.elapsed=0;game.pausedTotal=0;game.pauseStarted=0;setYoutubePauseInteraction(false);$('pauseModal').classList.add('hidden');
+ setQuestionPosition();
  $('menuScreen').classList.add('hidden');$('gameScreen').classList.remove('hidden');resizeCanvas();centerAim();showQuestion();
  // スタートボタンのクリック操作をそのまま利用し、開始直後にFPS視点へ入る
  lockPointerForPlay();
@@ -612,7 +647,27 @@ function sampleQuestions(pool,n){
 }
 function showQuestion(){
  game.locked=false;const q=game.questions[game.index];$('qNumber').textContent=game.index+1;$('correctCount').textContent=game.correct;$('questionText').textContent='正面の3D問題ボードを確認';const detail=[q.unit,q.skill].filter(Boolean).join(' / ');$('questionMeta').textContent=`${GRADES[q.grade]} ${TERMS[q.term]} ｜ ${q.subject} ｜ ${detail}${q.tier?` ｜ ${TIER_LABELS[q.tier]||q.tier}`:''}`;
- createTargets(q.choices); updateAccuracy();
+ fitQuestionPanel(q.q);
+ game.shotMarks=[];createTargets(q.choices); updateAccuracy();
+}
+function fitQuestionPanel(text){
+ const size=QUESTION_TEXT_SIZE*game.textScale;
+ const charsPerLine=Math.max(1,Math.floor(QUESTION_TEXT_CHARS/game.textScale));
+ const length=[...String(text)].length;
+ const lines=Math.max(1,Math.ceil(length/charsPerLine));
+ const longestLine=Math.min(length,charsPerLine);
+ QUESTION_PANEL.w=Math.max(14.8,Math.max(0,longestLine-1)*size*1.02+size+1.2);
+ QUESTION_PANEL.h=Math.max(2.8,(lines-1)*size*1.45+size+.7);
+ // 下端を回答パネルの上に保ち、必要な高さは上方向へ広げる。
+ QUESTION_PANEL.y=3.6+QUESTION_PANEL.h/2;
+}
+function setQuestionPosition(){
+ game.textScale=1;
+ if(game.distanceMode!=='random')return;
+ game.playerX=0;
+ game.playerZ=-Math.random()*BASE_TARGET_DISTANCE;
+ game.textScale=(BASE_TARGET_DISTANCE-game.playerZ)/BASE_TARGET_DISTANCE;
+ centerAim();
 }
 function panelPoint(panel,lx,ly,lz=0){
  // パネル固有のローカル座標を、本当の3D世界座標へ変換
@@ -630,7 +685,12 @@ function createTargets(choices){
  const shuffled=[...slots].sort(()=>Math.random()-.5);
  game.targets=choices.map((text,i)=>{
   const base=shuffled[i];
-  const target={text,index:i,...base,w:5.45,h:3.85,dots:[],completed:false};
+  const width=7.2;
+  // パネル面に沿って中心をずらし、外側の辺の3D位置を固定して中央へ広げる。
+  const inwardShift=(base.x<0?1:-1)*(width-5.45)/2;
+  const center=panelPoint(base,inwardShift,0);
+  const target={text,index:i,...base,...center,w:width,h:3.85,dots:[],completed:false};
+  fitAnswerText(target);
   const positions=(game.targetCount===1?[[0,-.3]]:[[-1.72,.40],[1.72,.40],[-1.72,-1.02],[1.72,-1.02]]).sort(()=>Math.random()-.5);
   for(const [ox,oy] of positions){
    const localX=ox+(Math.random()-.5)*.25,localY=oy+(Math.random()-.5)*.18;
@@ -641,6 +701,15 @@ function createTargets(choices){
  });
  game.projectedDots=[];
 }
+function fitAnswerText(target){
+ const length=[...String(target.text)].length;
+ const size=.275*game.textScale;
+ const charsPerLine=Math.max(1,Math.floor((target.w-.6)/(size*1.02)));
+ const lines=Math.max(1,Math.ceil(length/charsPerLine));
+ target.textSize=.275;
+ target.textChars=(charsPerLine+.001)*game.textScale;
+ target.textY=Math.min(1.23,target.h/2-.3-size/2-(lines-1)*size*1.45/2);
+}
 function fire(){
  if(!game.active||game.locked||game.pausedByMenu||game.pauseStarted)return;const now=performance.now();if(now<game.cooldownUntil)return;
  const cx=cw/2,cy=ch/2;
@@ -648,12 +717,19 @@ function fire(){
 }
 function fireAt(cx,cy){
  if(!game.active||game.locked||game.pausedByMenu||game.pauseStarted)return;const now=performance.now();if(now<game.cooldownUntil)return;
+ const moving=game.stoppingMode==='required'&&getMovementInput().magnitude>.2;
+ const spread=moving?Math.min(cw,ch)*(.12+Math.random()*.12):0;
+ const angle=Math.random()*Math.PI*2;
+ const shotX=moving?Math.max(12*DPR,Math.min(cw-12*DPR,cx+Math.cos(angle)*spread)):cx;
+ const shotY=moving?Math.max(12*DPR,Math.min(ch-12*DPR,cy+Math.sin(angle)*spread)):cy;
  game.shots++;let best=null;
  for(const p of game.projectedDots){
   if(p.dot.hit||p.target.completed||p.behind)continue;
-  const d=Math.hypot(p.sx-cx,p.sy-cy);
+  const d=Math.hypot(p.sx-shotX,p.sy-shotY);
   if(d<=p.radius*1.15&&(!best||d<best.d))best={...p,d};
  }
+ game.shotMarks.push({fromX:cw*.5,fromY:ch*.84,x:shotX,y:shotY,time:now});
+ if(game.shotMarks.length>8)game.shotMarks.shift();
  if(best){
   game.hits++;best.dot.hit=true;best.dot.flash=1;
   const remaining=best.target.dots.filter(d=>!d.hit).length;
@@ -661,7 +737,7 @@ function fireAt(cx,cy){
    best.target.completed=true;showToast(game.targetCount===1?'命中！ 判定します':'4つ命中！ 判定します','good');setTimeout(()=>answerTarget(best.target.index),220);
   }else showToast(`命中！ あと${remaining}個`,'good');
  }else{
-  game.missShots++;game.cooldownUntil=now+750;showToast('MISS - 0.75秒クールタイム','bad');
+  game.missShots++;game.cooldownUntil=now+MISS_COOLDOWN_MS;showToast(moving?'移動中の射撃がずれた！ 0.4秒クールタイム':'MISS - 0.4秒クールタイム','bad');
  }
  updateAccuracy();
 }
@@ -672,15 +748,15 @@ function answerTarget(index){
   showToast('不正解 - 解説を読もう','bad');setTimeout(()=>{game.pauseStarted=performance.now();releasePointerForUi();$('explainTitle').textContent=`不正解　正解：${q.choices[q.answer]}`;$('explainText').textContent=q.ex;$('explainModal').classList.remove('hidden');},320);
  }
 }
-function nextQuestion(){if(!game.active)return;game.index++;if(game.index>=15){finishGame();return;}showQuestion();}
+function nextQuestion(){if(!game.active)return;game.index++;if(game.index>=QUESTION_COUNT){finishGame();return;}setQuestionPosition();showQuestion();}
 function finishGame(){
  game.active=false;setYoutubePauseInteraction(false);game.elapsed=performance.now()-game.startTime-game.pausedTotal-(game.pauseStarted?performance.now()-game.pauseStarted:0);const key=scoreKey();const scores=getScores();const old=scores[key];const isRecord=!old||game.elapsed<old.time;
  if(isRecord)scores[key]={time:game.elapsed,date:new Date().toLocaleDateString('ja-JP'),correct:game.correct,accuracy:accuracy()};localStorage.setItem(STORAGE.scores,JSON.stringify(scores));
- $('resultTime').textContent=formatTime(game.elapsed);$('resultCorrect').textContent=`${game.correct}/15`;$('resultAccuracy').textContent=`${accuracy()}%`;$('resultMisses').textContent=game.missShots;
+ $('resultTime').textContent=formatTime(game.elapsed);$('resultCorrect').textContent=`${game.correct}/${QUESTION_COUNT}`;$('resultAccuracy').textContent=`${accuracy()}%`;$('resultMisses').textContent=game.missShots;
  $('recordMessage').textContent=isRecord?'🏆 新記録！ローカルストレージに保存しました。':`ベスト：${formatTime(old.time)}`;$('resultModal').classList.remove('hidden');
 }
-function scoreKey(){return [...game.selectedGrades].sort().join('+')+'__'+[...game.selectedSubjects].sort().join('+')+`__targets${game.targetCount}`;}
-function scoreLabel(key){const [g,s,targetKey]=key.split('__');const targetCount=targetKey?.replace('targets','')||'4';return `${g.split('+').map(x=>GRADE_TERMS[x]?.label||GRADES[x]||x).join('＋')} / ${s.split('+').join('・')} / 的${targetCount}つ`}
+function scoreKey(){return [...game.selectedGrades].sort().join('+')+'__'+[...game.selectedSubjects].sort().join('+')+`__targets${game.targetCount}__q${QUESTION_COUNT}__distance${game.distanceMode}`+(game.stoppingMode==='required'?'__stoppingrequired':'');}
+function scoreLabel(key){const [g,s,targetKey,questionKey,distanceKey,stoppingKey]=key.split('__');const targetCount=targetKey?.replace('targets','')||'4';const questionCount=questionKey?.replace('q','')||'15';const distance=distanceKey==='distancerandom'?'ランダム':'一定';const stopping=stoppingKey==='stoppingrequired'?'必要':'常にまっすぐ';return `${g.split('+').map(x=>GRADE_TERMS[x]?.label||GRADES[x]||x).join('＋')} / ${s.split('+').join('・')} / 的${targetCount}つ / ${distance} / ${stopping} / ${questionCount}問`}
 function getScores(){try{return JSON.parse(localStorage.getItem(STORAGE.scores)||'{}')}catch{return {}}}
 function renderScores(){const entries=Object.entries(getScores()).sort((a,b)=>a[1].time-b[1].time);$('scoreList').innerHTML=entries.length?entries.map(([k,v])=>`<div class="score-row"><span>${scoreLabel(k)}</span><b>${formatTime(v.time)}</b></div>`).join(''):'<div class="small">まだ記録がありません。</div>'}
 function backToMenu(){game.active=false;game.pausedByMenu=false;game.pauseStarted=0;releasePointerForUi();setYoutubePauseInteraction(false);$('pauseModal').classList.add('hidden');$('settingsModal').classList.add('hidden');$('explainModal').classList.add('hidden');$('resultModal').classList.add('hidden');$('gameScreen').classList.add('hidden');$('menuScreen').classList.remove('hidden');renderScores();}
@@ -688,13 +764,39 @@ function accuracy(){return game.shots?Math.round(game.hits/game.shots*100):100}
 function updateAccuracy(){$('accuracyText').textContent=accuracy()+'%'}
 function formatTime(ms){const m=Math.floor(ms/60000),s=Math.floor(ms/1000)%60,x=Math.floor(ms%1000);return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(x).padStart(3,'0')}`}
 function showToast(text,type){const el=$('statusToast');el.textContent=text;el.style.borderColor=type==='good'?'#56e98b':'#ff6476';el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),type==='good'?1700:1400)}
-function resizeCanvas(){const r=canvas.getBoundingClientRect();DPR=Math.min(devicePixelRatio||1,2);MOBILE_TARGET_SCALE=matchMedia('(pointer:coarse)').matches||innerWidth<=720?5.0:1;canvas.width=Math.max(1,Math.floor(r.width*DPR));canvas.height=Math.max(1,Math.floor(r.height*DPR));cw=canvas.width;ch=canvas.height;if(!game.aimX){game.aimX=cw/2;game.aimY=ch/2}updateCrosshair();}
-function centerAim(){game.yaw=0;game.pitch=0;game.aimX=cw/2;game.aimY=ch/2;updateCrosshair()}
+function resizeCanvas(){const r=canvas.getBoundingClientRect();DPR=Math.min(devicePixelRatio||1,settings.renderQuality);MOBILE_TARGET_SCALE=matchMedia('(pointer:coarse)').matches||innerWidth<=720?5.0:1;canvas.width=Math.max(1,Math.floor(r.width*DPR));canvas.height=Math.max(1,Math.floor(r.height*DPR));cw=canvas.width;ch=canvas.height;skyGradient=null;game.projectedDots=[];frameClock.lastDraw=0;updateCrosshair();}
+function centerAim(){mouseLook.x=0;mouseLook.y=0;game.yaw=0;game.pitch=0;game.aimX=cw/2;game.aimY=ch/2;updateCrosshair()}
 function moveAim(dx,dy){const step=.045*settings.sensitivity;const direction=settings.invertView?-1:1;game.yaw+=dx*step*direction;game.pitch=Math.max(-.62,Math.min(.62,game.pitch+dy*step*direction));}
 function updateCrosshair(){$('crosshair').style.left='50%';$('crosshair').style.top='50%'}
+function applyMouseLook(){
+ const dx=mouseLook.x,dy=mouseLook.y;mouseLook.x=0;mouseLook.y=0;
+ if(!game.active||game.pausedByMenu||game.pauseStarted||document.pointerLockElement!==canvas)return;
+ const speed=.0022*settings.sensitivity*(settings.invertView?-1:1);
+ game.yaw+=dx*speed;
+ game.pitch=Math.max(-.62,Math.min(.62,game.pitch+dy*speed));
+}
 function loop(now){
- const dt=Math.min(.04,(now-game.lastFrame)/1000||0);game.lastFrame=now;updateGamepad(dt);updatePlayerMovement(dt);drawArena(now,dt);
- if(game.active){const pausedNow=game.pauseStarted?now-game.pauseStarted:0;$('timerText').textContent=formatTime(now-game.startTime-game.pausedTotal-pausedNow);updateCooldown(now)}requestAnimationFrame(loop);
+ requestAnimationFrame(loop);
+ const dt=Math.min(.04,(now-game.lastFrame)/1000||0);game.lastFrame=now;applyMouseLook();updateGamepad(dt);updatePlayerMovement(dt);
+ if(settings.fpsLimit){
+  if(now+.5<frameClock.nextDraw)return;
+  frameClock.nextDraw+=1000/settings.fpsLimit;
+  if(frameClock.nextDraw<=now-.5)frameClock.nextDraw=now+1000/settings.fpsLimit;
+ }
+ const frameMs=frameClock.lastDraw?now-frameClock.lastDraw:0;
+ const drawDt=Math.min(.1,frameMs/1000);frameClock.lastDraw=now;
+ drawArena(now,drawDt);
+ if(game.active){
+  if(now-frameClock.lastHud>=50){const pausedNow=game.pauseStarted?now-game.pauseStarted:0;$('timerText').textContent=formatTime(now-game.startTime-game.pausedTotal-pausedNow);frameClock.lastHud=now;}
+  updateCooldown(now);
+  if(!frameClock.sampleStart){frameClock.sampleStart=now;frameClock.drawnFrames=0;frameClock.maxFrameMs=0;}
+  else{
+   frameClock.drawnFrames++;
+   frameClock.maxFrameMs=Math.max(frameClock.maxFrameMs,frameMs);
+   const elapsed=now-frameClock.sampleStart;
+   if(elapsed>=1000){const fps=Math.round(frameClock.drawnFrames*1000/elapsed),maxMs=frameClock.maxFrameMs.toFixed(1);$('fpsText').textContent=fps;$('settingsFpsText').textContent=fps;$('frameTimeText').textContent=maxMs;$('settingsFrameTimeText').textContent=maxMs;frameClock.sampleStart=now;frameClock.drawnFrames=0;frameClock.maxFrameMs=0;}
+  }
+ }else{frameClock.sampleStart=0;frameClock.drawnFrames=0;frameClock.maxFrameMs=0;}
 }
 
 function gamepadAxis(value){
@@ -729,13 +831,17 @@ function updateGamepad(dt){
  }
  gamepadState.fire=fireNow;gamepadState.pause=pauseNow;gamepadState.center=centerNow;
 }
-function updatePlayerMovement(dt){
- if(!game.active||game.pausedByMenu||game.pauseStarted||game.locked)return;
+function getMovementInput(){
  let forward=(game.moveKeys[settings.up]?1:0)-(game.moveKeys[settings.down]?1:0);
  let strafe=(game.moveKeys[settings.right]?1:0)-(game.moveKeys[settings.left]?1:0);
  const pads=navigator.getGamepads?.();const pad=pads&&[...pads].find(Boolean);
  if(pad){strafe+=gamepadAxis(pad.axes?.[0]);forward-=gamepadAxis(pad.axes?.[1]);}
- if(!forward&&!strafe)return;
+ return {forward,strafe,magnitude:Math.hypot(forward,strafe)};
+}
+function updatePlayerMovement(dt){
+ if(!game.active||game.pausedByMenu||game.pauseStarted||game.locked)return;
+ let {forward,strafe,magnitude}=getMovementInput();
+ if(!magnitude)return;
  const length=Math.hypot(forward,strafe)||1;forward/=length;strafe/=length;
  const speed=5.4;
  const sin=Math.sin(game.yaw),cos=Math.cos(game.yaw);
@@ -743,15 +849,16 @@ function updatePlayerMovement(dt){
  game.playerZ+=(cos*forward-sin*strafe)*speed*dt;
  // 回答パネルへ入り込んだり、部屋の外へ出たりしないよう制限
  game.playerX=Math.max(-9.5,Math.min(9.5,game.playerX));
- game.playerZ=Math.max(-3,Math.min(8.2,game.playerZ));
+ game.playerZ=Math.max(game.distanceMode==='random'?-BASE_TARGET_DISTANCE:-3,Math.min(8.2,game.playerZ));
 }
-function updateCooldown(now){const remain=Math.max(0,game.cooldownUntil-now);const active=remain>0;$('cooldown').classList.toggle('show',active);$('fireBtn').classList.toggle('cool',active);$('cooldownFill').style.width=(active?(1-remain/750)*100:0)+'%'}
+function updateCooldown(now){const remain=Math.max(0,game.cooldownUntil-now);const active=remain>0;$('cooldown').classList.toggle('show',active);$('fireBtn').classList.toggle('cool',active);$('cooldownFill').style.width=(active?(1-remain/MISS_COOLDOWN_MS)*100:0)+'%'}
 function rotateToCamera(x,y,z){
  // プレイヤー位置を原点として、世界座標をカメラ座標へ変換
  x-=game.playerX;y-=game.playerY;z-=game.playerZ;
- const cy=Math.cos(game.yaw),sy=Math.sin(game.yaw);
+ if(cameraRotation.yaw!==game.yaw){cameraRotation.yaw=game.yaw;cameraRotation.cy=Math.cos(game.yaw);cameraRotation.sy=Math.sin(game.yaw);}
+ if(cameraRotation.pitch!==game.pitch){cameraRotation.pitch=game.pitch;cameraRotation.cp=Math.cos(game.pitch);cameraRotation.sp=Math.sin(game.pitch);}
+ const {cy,sy,cp,sp}=cameraRotation;
  let x1=cy*x-sy*z,z1=sy*x+cy*z;
- const cp=Math.cos(game.pitch),sp=Math.sin(game.pitch);
  let y1=cp*y+sp*z1,z2=-sp*y+cp*z1;
  return {x:x1,y:y1,z:z2};
 }
@@ -763,6 +870,33 @@ function projectPoint(x,y,z){
 function drawWorldLine(a,b,color,width=1){
  const pa=projectPoint(a.x,a.y,a.z),pb=projectPoint(b.x,b.y,b.z);if(!pa||!pb)return;
  ctx.strokeStyle=color;ctx.lineWidth=width*DPR;ctx.beginPath();ctx.moveTo(pa.sx,pa.sy);ctx.lineTo(pb.sx,pb.sy);ctx.stroke();
+}
+function drawRoomGrid(roomStart){
+ let groups=roomGrids.get(roomStart);
+ if(!groups){
+  groups=[{color:'#21435e',width:.9,lines:[]},{color:'#17334a',width:.7,lines:[]},{color:'#1d3b54',width:.8,lines:[]},{color:'#46718d',width:1.2,lines:[]}];
+  for(let z=roomStart;z<=28;z+=2){
+   groups[0].lines.push([{x:-12,y:-5,z},{x:12,y:-5,z}]);
+   groups[1].lines.push([{x:-12,y:5,z},{x:12,y:5,z}]);
+  }
+  for(let x=-12;x<=12;x+=2){
+   groups[0].lines.push([{x,y:-5,z:roomStart},{x,y:-5,z:28}]);
+   groups[1].lines.push([{x,y:5,z:roomStart},{x,y:5,z:28}]);
+  }
+  for(let z=roomStart;z<=28;z+=3){
+   groups[2].lines.push([{x:-12,y:-5,z},{x:-12,y:5,z}],[{x:12,y:-5,z},{x:12,y:5,z}]);
+  }
+  for(const y of [-5,5])groups[3].lines.push([{x:-12,y,z:28},{x:12,y,z:28}]);
+  roomGrids.set(roomStart,groups);
+ }
+ for(const group of groups){
+  ctx.strokeStyle=group.color;ctx.lineWidth=group.width*DPR;ctx.beginPath();
+  for(const [a,b] of group.lines){
+   const pa=projectPoint(a.x,a.y,a.z),pb=projectPoint(b.x,b.y,b.z);if(!pa||!pb)continue;
+   ctx.moveTo(pa.sx,pa.sy);ctx.lineTo(pb.sx,pb.sy);
+  }
+  ctx.stroke();
+ }
 }
 function projectPanelCorners(panel){
  const hw=panel.w/2,hh=panel.h/2;
@@ -783,56 +917,67 @@ function drawWorldText(text,world,maxWorldWidth,fontWorldSize,color='#eefaff',we
  const lines=measureWrappedLines(ctx,String(text),maxWidth);const lh=fontSize*1.08;
  lines.forEach((line,i)=>ctx.fillText(line,p.sx,p.sy+(i-(lines.length-1)/2)*lh));
 }
-function drawTextOnPanel3D(text,panel,maxCharsPerLine=18,fontWorldSize=.34,color='#fff7d1',weight=900,localYOffset=0){
- // 文字ごとにパネル面上の3D座標へ置く。視点を振ると文字も枠と同じ遠近・傾きで動く。
- const chars=[...String(text)];
- const lines=[];
- for(let i=0;i<chars.length;i+=maxCharsPerLine)lines.push(chars.slice(i,i+maxCharsPerLine));
- const lineGap=fontWorldSize*1.45;
- const charGap=fontWorldSize*1.02;
- lines.forEach((line,li)=>{
-  const lineWidth=(line.length-1)*charGap;
-  line.forEach((chh,ci)=>{
-   const localX=-lineWidth/2+ci*charGap;
-   const localY=localYOffset+(lines.length-1)*lineGap/2-li*lineGap;
-   const wp=panelPoint(panel,localX,localY,-.045);
-   const pp=projectPoint(wp.x,wp.y,wp.z);if(!pp)return;
-   const fontSize=Math.max(8*DPR,fontWorldSize*pp.scale);
-   ctx.font=`${weight} ${fontSize}px system-ui`;
-   ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=color;
-   ctx.fillText(chh,pp.sx,pp.sy);
+function drawTextOnPanel3D(text,panel,maxCharsPerLine=18,fontWorldSize=.34,color='#fff7d1',weight=900,localYOffset=0,textScale=1){
+ // 文字の世界座標は問題中に変わらないため、配置を再利用する。
+ const key=[text,maxCharsPerLine,fontWorldSize,localYOffset,textScale,panel.x,panel.y,panel.z,panel.rotY].join('|');
+ let layout=textLayouts.get(panel);
+ if(!layout||layout.key!==key){
+  const chars=[...String(text)],lines=[],glyphs=[];
+  const charsPerLine=Math.max(1,Math.floor(maxCharsPerLine/textScale));
+  for(let i=0;i<chars.length;i+=charsPerLine)lines.push(chars.slice(i,i+charsPerLine));
+  const size=fontWorldSize*textScale,lineGap=size*1.45,charGap=size*1.02;
+  lines.forEach((line,li)=>{
+   const lineWidth=(line.length-1)*charGap;
+   line.forEach((character,ci)=>{
+    const world=panelPoint(panel,-lineWidth/2+ci*charGap,localYOffset+(lines.length-1)*lineGap/2-li*lineGap,-.045);
+    glyphs.push({character,...world});
+   });
   });
- });
+  layout={key,size,glyphs};textLayouts.set(panel,layout);
+ }
+ ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=color;
+ let previousSize=0;
+ for(const glyph of layout.glyphs){
+  const pp=projectPoint(glyph.x,glyph.y,glyph.z);if(!pp)continue;
+  // 半ピクセル単位に揃えて、微小なサイズ差による文字の再生成を抑える。
+  const fontSize=Math.round(Math.max(8*DPR,layout.size*pp.scale)*2)/2;
+  if(fontSize!==previousSize){ctx.font=`${weight} ${fontSize}px system-ui`;previousSize=fontSize;}
+  ctx.fillText(glyph.character,pp.sx,pp.sy);
+ }
+}
+function drawBullets(now){
+ game.shotMarks=game.shotMarks.filter(mark=>now-mark.time<BULLET_FLIGHT_MS);
+ for(const mark of game.shotMarks){
+  const progress=Math.max(0,(now-mark.time)/BULLET_FLIGHT_MS);
+  const tailProgress=Math.max(0,progress-.12);
+  const dx=mark.x-mark.fromX,dy=mark.y-mark.fromY;
+  const x=mark.fromX+dx*progress,y=mark.fromY+dy*progress;
+  const tailX=mark.fromX+dx*tailProgress,tailY=mark.fromY+dy*tailProgress;
+  ctx.save();ctx.lineCap='round';
+  ctx.strokeStyle='#ffd45a';ctx.lineWidth=4*DPR;
+  ctx.shadowColor='#ffd45a';ctx.shadowBlur=8*DPR;
+  ctx.beginPath();ctx.moveTo(tailX,tailY);ctx.lineTo(x,y);ctx.stroke();
+  ctx.fillStyle='#fff8dc';ctx.beginPath();ctx.arc(x,y,2.5*DPR,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+ }
 }
 function drawArena(now,dt){
  ctx.clearRect(0,0,cw,ch);
- const sky=ctx.createLinearGradient(0,0,0,ch);sky.addColorStop(0,'#173451');sky.addColorStop(.52,'#091725');sky.addColorStop(1,'#02060a');ctx.fillStyle=sky;ctx.fillRect(0,0,cw,ch);
+ if(!skyGradient){skyGradient=ctx.createLinearGradient(0,0,0,ch);skyGradient.addColorStop(0,'#173451');skyGradient.addColorStop(.52,'#091725');skyGradient.addColorStop(1,'#02060a');}ctx.fillStyle=skyGradient;ctx.fillRect(0,0,cw,ch);
  if(!game.active&&$('gameScreen').classList.contains('hidden'))return;
  const q=game.questions[game.index];if(!q)return;
 
  // 3D訓練ルーム：床・天井・側壁のグリッド
- for(let z=2;z<=28;z+=2){
-  drawWorldLine({x:-12,y:-5,z},{x:12,y:-5,z},'#21435e',.9);
-  drawWorldLine({x:-12,y:5,z},{x:12,y:5,z},'#17334a',.7);
- }
- for(let x=-12;x<=12;x+=2){
-  drawWorldLine({x,y:-5,z:2},{x,y:-5,z:28},'#21435e',.9);
-  drawWorldLine({x,y:5,z:2},{x,y:5,z:28},'#17334a',.7);
- }
- for(let z=2;z<=28;z+=3){
-  drawWorldLine({x:-12,y:-5,z},{x:-12,y:5,z},'#1d3b54',.8);
-  drawWorldLine({x:12,y:-5,z},{x:12,y:5,z},'#1d3b54',.8);
- }
- drawWorldLine({x:-12,y:-5,z:28},{x:12,y:-5,z:28},'#46718d',1.2);
- drawWorldLine({x:-12,y:5,z:28},{x:12,y:5,z:28},'#46718d',1.2);
+ const roomStart=game.distanceMode==='random'?-14:2;
+ drawRoomGrid(roomStart);
 
  game.projectedDots=[];
 
  // 問題文も3D空間上のボードとして配置
- const questionPanel={x:0,y:4.625,z:12.8,rotY:0,w:10.4,h:2.2};
+ const questionPanel=QUESTION_PANEL;
  ctx.save();ctx.globalAlpha=.96;
  if(drawWorldPanel(questionPanel,'#0a1b29ee','#ffd45a')){
-  drawTextOnPanel3D(q.q,questionPanel,18,.34,'#fff7d1',900);
+  drawTextOnPanel3D(q.q,questionPanel,QUESTION_TEXT_CHARS,QUESTION_TEXT_SIZE,'#fff7d1',900,0,game.textScale);
  }
  ctx.restore();
 
@@ -843,7 +988,7 @@ function drawArena(now,dt){
   if(!drawWorldPanel(t,t.completed?'#123c2ddd':'#07131ddd',t.completed?'#56e98b':'#3cd9ff')){ctx.restore();continue;}
 
   // 回答文字もパネル面上の3D位置に固定
-  drawTextOnPanel3D(t.text,t,18,.275,'#eefaff',850,1.23);
+  drawTextOnPanel3D(t.text,t,t.textChars,t.textSize,'#eefaff',850,t.textY,game.textScale);
 
   for(const dot of t.dots){
    const p=projectPoint(dot.x,dot.y,dot.z);if(!p)continue;
@@ -859,6 +1004,7 @@ function drawArena(now,dt){
  }
  // FPSらしい照準周辺の簡易銃身
  ctx.save();ctx.globalAlpha=.75;ctx.fillStyle='#101820';ctx.beginPath();ctx.moveTo(cw*.43,ch);ctx.lineTo(cw*.47,ch*.84);ctx.lineTo(cw*.53,ch*.84);ctx.lineTo(cw*.57,ch);ctx.closePath();ctx.fill();ctx.restore();
+ drawBullets(now);
  ctx.font=`700 ${12*DPR}px system-ui`;ctx.textAlign='right';ctx.fillStyle=performance.now()<game.cooldownUntil?'#ff6476':'#56e98b';ctx.fillText(performance.now()<game.cooldownUntil?'RELOADING...':'READY',cw-14*DPR,ch-14*DPR);
  if(document.pointerLockElement!==canvas && matchMedia('(pointer:fine)').matches){ctx.textAlign='center';ctx.fillStyle='#d9f5ff';ctx.font=`700 ${13*DPR}px system-ui`;ctx.fillText('クリックで視点操作を開始',cw/2,ch-18*DPR);}
 }

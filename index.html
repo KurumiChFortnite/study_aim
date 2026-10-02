@@ -148,7 +148,7 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
     <h1>STUDY AIM</h1>
     <a class="channel-banner" href="https://youtube.com/channel/UC95aAK2efSZvenj0l9ZD-dQ" target="_blank" rel="noopener noreferrer" aria-label="くるみちゃんねるをYouTubeで開く"><img src="./kurumich.png" alt="くるみちゃんねる"></a>
    </div>
-   <p>勉強しながらエイム練習。10問のクリアタイムに挑戦！</p>
+   <p>勉強しながらエイム練習。10問・15問のクリアタイムに挑戦！</p>
   </div>
   <p class="small" style="text-align:center;margin:0 0 12px;color:#c9d9e7">⚠️ 問題・解答には誤りが含まれる可能性があります。本ゲームは自己責任でご利用いただき、くるみちゃんねるでは責任を負いかねます。</p>
 
@@ -185,6 +185,13 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
    <div class="subject-grid" id="stoppingModeChecks">
     <label class="check-card"><input type="radio" name="stoppingMode" value="required"><span class="grade-label">必要<br><small>移動中は弾が大きくずれる</small></span></label>
     <label class="check-card"><input type="radio" name="stoppingMode" value="straight" checked><span class="grade-label">常にまっすぐ<br><small>移動中も照準どおり</small></span></label>
+   </div>
+  </div>
+  <div class="panel">
+   <h2>⑥ 問題数</h2>
+   <div class="subject-grid" id="questionCountChecks">
+    <label class="check-card"><input type="radio" name="questionCount" value="10" checked><span class="grade-label">10問</span></label>
+    <label class="check-card"><input type="radio" name="questionCount" value="15"><span class="grade-label">15問</span></label>
    </div>
   </div>
   <div class="panel">
@@ -234,7 +241,7 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
 <section id="gameScreen" class="screen hidden">
  <header id="topHud">
   <button id="mobileHomeBtn" type="button">🏠 ホーム</button>
-  <div class="hud-box"><span class="hud-label">進行</span><span class="hud-value"><span id="qNumber">1</span> / 10</span><span class="hud-label">正解 <span id="correctCount">0</span></span></div>
+  <div class="hud-box"><span class="hud-label">進行</span><span class="hud-value"><span id="qNumber">1</span> / <span id="qTotal">10</span></span><span class="hud-label">正解 <span id="correctCount">0</span></span></div>
   <div class="hud-box"><div id="questionText">問題文</div><div id="questionMeta"></div></div>
   <div class="hud-box"><span class="hud-label">TIME</span><span class="hud-value" id="timerText">00:00.000</span><span class="hud-label">命中率 <span id="accuracyText">100%</span></span><span class="hud-label">描画 <span id="fpsText">--</span> FPS / 最長 <span id="frameTimeText">--</span> ms</span></div>
  </header>
@@ -295,7 +302,7 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
 </div>
 
 <script src="./youtube-config.js"></script>
-<script src="./youtube-player.js?v=hide-restore-2"></script>
+<script src="./youtube-player.js?v=hide-restore-ads-3"></script>
 <script>
 'use strict';
 
@@ -439,7 +446,7 @@ function validateQuestionCoverage(){
 }
 
 const STORAGE={scores:'studyAimScoresV1',settings:'studyAimSettingsV1',menuSelections:'studyAimMenuSelectionsV1'};
-const QUESTION_COUNT=10;
+function selectedQuestionCount(){return document.querySelector('input[name="questionCount"]:checked')?.value==='15'?15:10;}
 const BASE_TARGET_DISTANCE=13.5;
 const MISS_COOLDOWN_MS=400;
 const BULLET_FLIGHT_MS=40;
@@ -476,7 +483,7 @@ async function init(){
  }
 }
 function bindEvents(){
- ['gradeChecks','subjectChecks','targetCountChecks','distanceModeChecks','stoppingModeChecks'].forEach(id=>$(id).addEventListener('change',saveMenuSelections));
+ ['gradeChecks','subjectChecks','targetCountChecks','distanceModeChecks','stoppingModeChecks','questionCountChecks'].forEach(id=>$(id).addEventListener('change',saveMenuSelections));
  $('startBtn').onclick=()=>startGame(false);
  $('settingsBtn').onclick=()=>{game.settingsFromPause=false;$('settingsModal').classList.remove('hidden');};
  $('closeSettings').onclick=closeSettingsModal; $('saveSettings').onclick=saveSettings;
@@ -575,10 +582,12 @@ function loadMenuSelections(){
   const target=document.querySelector(`input[name="targetCount"][value="${Number(saved.targetCount)}"]`);if(target)target.checked=true;
   const distance=document.querySelector(`input[name="distanceMode"][value="${saved.distanceMode}"]`);if(distance)distance.checked=true;
   const stopping=document.querySelector(`input[name="stoppingMode"][value="${saved.stoppingMode}"]`);if(stopping)stopping.checked=true;
+  const count=document.querySelector(`input[name="questionCount"][value="${saved.questionCount===15?15:10}"]`);if(count)count.checked=true;
  }catch(e){console.warn('メニュー選択設定を復元できませんでした:',e);}
 }
 function saveMenuSelections(){
  const value={version:1,grades:selected('#gradeChecks input'),subjects:selected('#subjectChecks input'),targetCount:Number(document.querySelector('input[name="targetCount"]:checked')?.value)||4,distanceMode:document.querySelector('input[name="distanceMode"]:checked')?.value||'fixed',stoppingMode:document.querySelector('input[name="stoppingMode"]:checked')?.value||'straight'};
+ value.questionCount=selectedQuestionCount();
  try{localStorage.setItem(STORAGE.menuSelections,JSON.stringify(value));}catch(e){console.warn('メニュー選択設定を保存できませんでした:',e);}
 }
 function keyName(code){return code.replace('Key','').replace('Digit','').replace('Space','スペース').replace('Arrow','矢印');}
@@ -614,12 +623,13 @@ function releasePointerForUi(){
 }
 function startGame(retry=false){
  if(!questionDataReady)return alert('問題JSONの読み込みが完了していません。');
+ if(!retry)game.questionCount=selectedQuestionCount();
  if(!retry){game.selectedGrades=selected('#gradeChecks input');game.selectedSubjects=selected('#subjectChecks input');game.targetCount=Number(document.querySelector('input[name="targetCount"]:checked')?.value)||4;game.distanceMode=document.querySelector('input[name="distanceMode"]:checked')?.value||'fixed';game.stoppingMode=document.querySelector('input[name="stoppingMode"]:checked')?.value||'straight';}
  if(!game.selectedGrades.length)return alert('学年を1つ以上選んでください。');
  if(!game.selectedSubjects.length)return alert('教科を1つ以上選んでください。');
  let pool=QUESTIONS.filter(q=>game.selectedGrades.some(key=>{const advanced=key.endsWith('_adv');const base=advanced?key.slice(0,-4):key;return base===`${q.grade}_t${q.term}`&&(advanced?q.difficulty==='advanced':q.difficulty!=='advanced');})&&game.selectedSubjects.includes(q.subject));
  if(!pool.length)return alert('該当する問題がありません。学年または教科を変更してください。');
- game.questions=sampleQuestions(pool,QUESTION_COUNT);game.index=0;game.correct=0;game.shots=0;game.hits=0;game.missShots=0;game.locked=false;game.cooldownUntil=0;game.active=true;game.pausedByMenu=false;game.playerX=0;game.playerY=0;game.playerZ=0;game.moveKeys={};game.shotMarks=[];game.startTime=performance.now();game.elapsed=0;game.pausedTotal=0;game.pauseStarted=0;setYoutubePauseInteraction(false);$('pauseModal').classList.add('hidden');
+ game.questions=sampleQuestions(pool,game.questionCount);game.index=0;game.correct=0;game.shots=0;game.hits=0;game.missShots=0;game.locked=false;game.cooldownUntil=0;game.active=true;game.pausedByMenu=false;game.playerX=0;game.playerY=0;game.playerZ=0;game.moveKeys={};game.shotMarks=[];game.startTime=performance.now();game.elapsed=0;game.pausedTotal=0;game.pauseStarted=0;setYoutubePauseInteraction(false);$('pauseModal').classList.add('hidden');
  setQuestionPosition();
  $('menuScreen').classList.add('hidden');$('gameScreen').classList.remove('hidden');resizeCanvas();centerAim();showQuestion();
  // スタートボタンのクリック操作をそのまま利用し、開始直後にFPS視点へ入る
@@ -648,6 +658,7 @@ function sampleQuestions(pool,n){
  return result;
 }
 function showQuestion(){
+ $('qTotal').textContent=game.questionCount;
  game.locked=false;const q=game.questions[game.index];$('qNumber').textContent=game.index+1;$('correctCount').textContent=game.correct;$('questionText').textContent='正面の3D問題ボードを確認';const detail=[q.unit,q.skill].filter(Boolean).join(' / ');$('questionMeta').textContent=`${GRADES[q.grade]} ${TERMS[q.term]} ｜ ${q.subject} ｜ ${detail}${q.tier?` ｜ ${TIER_LABELS[q.tier]||q.tier}`:''}`;
  fitQuestionPanel(q.q);
  game.shotMarks=[];createTargets(q.choices); updateAccuracy();
@@ -750,14 +761,16 @@ function answerTarget(index){
   showToast('不正解 - 解説を読もう','bad');setTimeout(()=>{game.pauseStarted=performance.now();releasePointerForUi();$('explainTitle').textContent=`不正解　正解：${q.choices[q.answer]}`;$('explainText').textContent=q.ex;$('explainModal').classList.remove('hidden');},320);
  }
 }
-function nextQuestion(){if(!game.active)return;game.index++;if(game.index>=QUESTION_COUNT){finishGame();return;}setQuestionPosition();showQuestion();}
+function nextQuestion(){if(!game.active)return;game.index++;if(game.index>=game.questionCount){finishGame();return;}setQuestionPosition();showQuestion();}
 function finishGame(){
  game.active=false;setYoutubePauseInteraction(false);game.elapsed=performance.now()-game.startTime-game.pausedTotal-(game.pauseStarted?performance.now()-game.pauseStarted:0);const key=scoreKey();const scores=getScores();const old=scores[key];const isRecord=!old||game.elapsed<old.time;
+ releasePointerForUi();
+ $('resultModal').querySelector('h2').textContent=`${game.questionCount}問クリア！`;
  if(isRecord)scores[key]={time:game.elapsed,date:new Date().toLocaleDateString('ja-JP'),correct:game.correct,accuracy:accuracy()};localStorage.setItem(STORAGE.scores,JSON.stringify(scores));
- $('resultTime').textContent=formatTime(game.elapsed);$('resultCorrect').textContent=`${game.correct}/${QUESTION_COUNT}`;$('resultAccuracy').textContent=`${accuracy()}%`;$('resultMisses').textContent=game.missShots;
+ $('resultTime').textContent=formatTime(game.elapsed);$('resultCorrect').textContent=`${game.correct}/${game.questionCount}`;$('resultAccuracy').textContent=`${accuracy()}%`;$('resultMisses').textContent=game.missShots;
  $('recordMessage').textContent=isRecord?'🏆 新記録！ローカルストレージに保存しました。':`ベスト：${formatTime(old.time)}`;$('resultModal').classList.remove('hidden');
 }
-function scoreKey(){return [...game.selectedGrades].sort().join('+')+'__'+[...game.selectedSubjects].sort().join('+')+`__targets${game.targetCount}__q${QUESTION_COUNT}__distance${game.distanceMode}`+(game.stoppingMode==='required'?'__stoppingrequired':'');}
+function scoreKey(){return [...game.selectedGrades].sort().join('+')+'__'+[...game.selectedSubjects].sort().join('+')+`__targets${game.targetCount}__q${game.questionCount}__distance${game.distanceMode}`+(game.stoppingMode==='required'?'__stoppingrequired':'');}
 function scoreLabel(key){const [g,s,targetKey,questionKey,distanceKey,stoppingKey]=key.split('__');const targetCount=targetKey?.replace('targets','')||'4';const questionCount=questionKey?.replace('q','')||'15';const distance=distanceKey==='distancerandom'?'ランダム':'一定';const stopping=stoppingKey==='stoppingrequired'?'必要':'常にまっすぐ';return `${g.split('+').map(x=>GRADE_TERMS[x]?.label||GRADES[x]||x).join('＋')} / ${s.split('+').join('・')} / 的${targetCount}つ / ${distance} / ${stopping} / ${questionCount}問`}
 function getScores(){try{return JSON.parse(localStorage.getItem(STORAGE.scores)||'{}')}catch{return {}}}
 function renderScores(){const entries=Object.entries(getScores()).sort((a,b)=>a[1].time-b[1].time);$('scoreList').innerHTML=entries.length?entries.map(([k,v])=>`<div class="score-row"><span>${scoreLabel(k)}</span><b>${formatTime(v.time)}</b></div>`).join(''):'<div class="small">まだ記録がありません。</div>'}

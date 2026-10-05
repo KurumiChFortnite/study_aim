@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="icon" type="image/png" href="./favicon.png">
 <title>STUDY AIM - 勉強×FPS射撃練習</title>
+<script src="./analytics.js"></script>
 <style>
 :root{
   --bg:#07111e;--panel:#0d1c2d;--panel2:#13263b;--text:#eef7ff;--muted:#9fb5c9;
@@ -76,17 +77,17 @@ button{cursor:pointer}
 #youtubeWidget.game-paused{z-index:31;box-shadow:0 20px 70px #000,0 0 0 2px #35d6ff88}
 #youtubeWidget.minimized{overflow:visible;background:#050a10;border-color:#35d6ff88}
 .youtube-dragbar{display:flex;align-items:center;gap:8px;padding:9px 10px;cursor:move;touch-action:none;user-select:none;background:#13263b;border-radius:14px 14px 0 0}
-.youtube-dragbar strong{font-size:13px;flex:1}.youtube-dragbar span{font-size:11px;color:var(--muted)}
-.youtube-body{padding:0 10px 10px}.youtube-subtitle{margin:7px 0;color:var(--muted);font-size:11px;line-height:1.4}
+.youtube-dragbar strong{font-size:15px;flex:1}.youtube-dragbar span{font-size:13px;color:var(--muted)}
+.youtube-body{padding:0 10px 10px}.youtube-subtitle{margin:7px 0;color:var(--muted);font-size:13px;line-height:1.5}
 .youtube-player-wrap{position:relative;width:100%;aspect-ratio:16/9;background:#050a10;border-radius:9px;overflow:hidden}
 #youtubePlayer{position:absolute;inset:0;width:100%;height:100%}
-.youtube-new{position:absolute;z-index:2;left:7px;top:7px;padding:4px 7px;border-radius:999px;background:#e54862;color:#fff;font-size:11px;font-weight:900;pointer-events:none}
-.youtube-controls{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.youtube-controls button,.youtube-controls a,.youtube-restore{border:1px solid #355774;border-radius:8px;padding:6px 8px;background:#19344e;color:#eef7ff;font:700 11px system-ui;text-decoration:none;cursor:pointer}
-.youtube-size-controls{display:flex;gap:5px;margin-left:auto}.youtube-size-controls button.active{border-color:#35d6ff;color:#35d6ff}
-.youtube-copy{margin:8px 0 0;font-size:10px;line-height:1.5;color:#c9d9e7}.youtube-copy p{margin:3px 0}
-.youtube-status{font-size:11px;color:var(--muted);padding:5px 0}.youtube-status.error{color:#ff9aaa}
+.youtube-new{position:absolute;z-index:2;left:7px;top:7px;padding:4px 7px;border-radius:999px;background:#e54862;color:#fff;font-size:13px;font-weight:900;pointer-events:none}
+.youtube-controls{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.youtube-controls button,.youtube-controls a,.youtube-restore{border:1px solid #355774;border-radius:8px;padding:6px 8px;background:#19344e;color:#eef7ff;font:700 13px system-ui;text-decoration:none;cursor:pointer}
+.youtube-size-controls{display:flex;flex-wrap:wrap;gap:5px;margin-left:auto;max-width:100%}.youtube-size-controls button{white-space:nowrap}.youtube-size-controls button.active{border-color:#35d6ff;color:#35d6ff}
+.youtube-copy{margin:8px 0 0;font-size:12px;line-height:1.5;color:#c9d9e7}.youtube-copy p{margin:3px 0}
+.youtube-status{font-size:13px;color:var(--muted);padding:5px 0}.youtube-status.error{color:#ff9aaa}
 .youtube-restore{display:none;background:#19344ef5;box-shadow:0 8px 25px #0008}
-.youtube-mute{border:1px solid #355774;border-radius:8px;padding:6px 8px;background:#19344e;color:#eef7ff;font:700 11px system-ui;cursor:pointer}
+.youtube-mute{border:1px solid #355774;border-radius:8px;padding:6px 8px;background:#19344e;color:#eef7ff;font:700 13px system-ui;cursor:pointer}
 .youtube-mini-mute{display:none;position:absolute;z-index:6;left:6px;top:6px;padding:5px 7px;touch-action:manipulation}
 #youtubeWidget.minimized .youtube-restore{display:block;position:absolute;z-index:4;right:6px;top:6px;padding:5px 7px;opacity:.88}
 #youtubeWidget.minimized .youtube-mini-mute{display:block;opacity:.92}
@@ -98,7 +99,7 @@ button{cursor:pointer}
 #youtubeWidget.youtube-hidden .youtube-shell{position:fixed;left:0;top:0;width:240px;opacity:0;pointer-events:none;clip-path:inset(100%)}
 #youtubeWidget.youtube-hidden .youtube-restore,#youtubeWidget.youtube-hidden .youtube-mini-mute{display:none}
 #youtubeWidget.youtube-hidden #youtubeHiddenRestoreBtn{display:block}
-.youtube-hidden-restore{display:none;border:1px solid #35d6ff88;border-radius:9px;padding:8px 11px;background:#19344ef5;color:#eef7ff;font:700 12px system-ui;box-shadow:0 8px 25px #0008;cursor:pointer}
+.youtube-hidden-restore{display:none;border:1px solid #35d6ff88;border-radius:9px;padding:8px 11px;background:#19344ef5;color:#eef7ff;font:700 14px system-ui;box-shadow:0 8px 25px #0008;cursor:pointer}
 #mobileControls{display:none;flex:none;height:190px;background:#0b1827;border-top:1px solid #29445e;padding:10px;gap:12px;touch-action:none}
 .aim-pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(3,52px);gap:5px;align-content:center;justify-content:center;flex:1}
 .mobile-btn{border:1px solid #41627d;background:#17314a;color:#fff;border-radius:12px;font-size:22px;font-weight:900;box-shadow:inset 0 -4px 0 #091522}
@@ -454,6 +455,8 @@ const FPS_LIMITS=[0,30,60,120,144,240,360];
 const RENDER_QUALITIES=[.75,1,2];
 const DEFAULT_SETTINGS={fpsLimit:0,renderQuality:1,sensitivity:1,gamepadSensitivity:1,invertView:false,centerKey:'KeyC',up:'KeyW',left:'KeyA',down:'KeyS',right:'KeyD'};
 let settings={...DEFAULT_SETTINGS};
+// 完走イベントだけをゲーム単位で制御する（永続化やユーザー単位の除外はしない）。
+let gameCompleteTracked=true;
 let game={active:false,questions:[],index:0,correct:0,shots:0,hits:0,missShots:0,startTime:0,elapsed:0,pausedTotal:0,pauseStarted:0,locked:false,cooldownUntil:0,targets:[],aimX:0,aimY:0,lastFrame:0,selectedGrades:[],selectedSubjects:[],targetCount:4,distanceMode:'fixed',stoppingMode:'straight',textScale:1,yaw:0,pitch:0,playerX:0,playerY:0,playerZ:0,moveKeys:{},projectedDots:[],shotMarks:[],touchStart:null,touchMoved:false,pausedByMenu:false,settingsFromPause:false,suppressPauseOnUnlock:false};
 
 const $=id=>document.getElementById(id);
@@ -634,6 +637,12 @@ function startGame(retry=false){
  $('menuScreen').classList.add('hidden');$('gameScreen').classList.remove('hidden');resizeCanvas();centerAim();showQuestion();
  // スタートボタンのクリック操作をそのまま利用し、開始直後にFPS視点へ入る
  lockPointerForPlay();
+ gameCompleteTracked=false;
+ window.StudyAimAnalytics?.trackEvent('game_start',{
+  grade:[...new Set(game.selectedGrades.map(key=>key.split('_')[0]))].join(',').slice(0,100),
+  term:[...new Set(game.selectedGrades.map(key=>key.split('_')[1].slice(1)))].join(','),
+  subject:game.selectedSubjects.join(',').slice(0,100)
+ });
 }
 function sampleQuestions(pool,n){
  if(!pool.length)return [];
@@ -756,6 +765,7 @@ function fireAt(cx,cy){
 }
 function answerTarget(index){
  if(game.locked)return;game.locked=true;const q=game.questions[game.index];
+ window.StudyAimAnalytics?.trackEvent('answer',{correct:index===q.answer});
  window.StudyAimYouTube?.onProblemCleared();
  if(index===q.answer){game.correct++;$('correctCount').textContent=game.correct;showToast(`正解！ ${q.ex}`,'good');setTimeout(nextQuestion,650);}else{
   showToast('不正解 - 解説を読もう','bad');setTimeout(()=>{game.pauseStarted=performance.now();releasePointerForUi();$('explainTitle').textContent=`不正解　正解：${q.choices[q.answer]}`;$('explainText').textContent=q.ex;$('explainModal').classList.remove('hidden');},320);
@@ -763,6 +773,10 @@ function answerTarget(index){
 }
 function nextQuestion(){if(!game.active)return;game.index++;if(game.index>=game.questionCount){finishGame();return;}setQuestionPosition();showQuestion();}
 function finishGame(){
+ if(!gameCompleteTracked&&game.index>=game.questionCount){
+  gameCompleteTracked=true;
+  window.StudyAimAnalytics?.trackEvent('game_complete');
+ }
  game.active=false;setYoutubePauseInteraction(false);game.elapsed=performance.now()-game.startTime-game.pausedTotal-(game.pauseStarted?performance.now()-game.pauseStarted:0);const key=scoreKey();const scores=getScores();const old=scores[key];const isRecord=!old||game.elapsed<old.time;
  releasePointerForUi();
  $('resultModal').querySelector('h2').textContent=`${game.questionCount}問クリア！`;

@@ -234,6 +234,10 @@
     const playerState = window.YT && window.YT.PlayerState;
     if (!playerState) return;
     if (event.data === playerState.PLAYING) {
+      window.StudyAimAnalytics?.trackEvent('youtube_play', {
+        video_id: state.current?.videoId,
+        video_title: (state.current?.title || '').slice(0, 100)
+      });
       // playVideo() が遅れて反映された場合も、表示時の一時停止要求を守る。
       if (state.pauseOnRestorePending) {
         try { state.player.pauseVideo(); } catch (_) {} // 確認タイマーで停止へ戻す。
@@ -558,6 +562,7 @@
 
   function bindUi() {
     elements.next.addEventListener('click', () => {
+      window.StudyAimAnalytics?.trackEvent('youtube_change_video');
       const previousId = state.current && state.current.videoId;
       stopPlaybackClock();
       if (state.playerReady && state.player && typeof state.player.stopVideo === 'function') state.player.stopVideo();

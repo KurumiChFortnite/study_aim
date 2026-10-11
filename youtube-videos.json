@@ -1,8 +1,13 @@
 {
   "version": 1,
   "playlistId": "PLNr8dhvw3VF_VyaTqzp6mW5LDcY9edUPA",
-  "updatedAt": "2026-10-04T13:16:34.522Z",
+  "updatedAt": "2026-10-11T13:02:02.641Z",
   "videos": [
+    {
+      "videoId": "XdaCdjzk034",
+      "publishedAt": "2026-10-11T08:00:12+00:00",
+      "title": "【リロードの立ち回りを教えてもらうはずがまさかの展開www】 #フォートナイト #エンジョイ勢 #小学生 #バトロワ #ゲーム実況"
+    },
     {
       "videoId": "VX9qroecYow",
       "publishedAt": "2026-10-04T08:45:05+00:00",
@@ -67,16 +72,6 @@
       "videoId": "r6XfOQdOIIE",
       "publishedAt": "2026-03-22T08:18:00+00:00",
       "title": "【新シーズン開幕！ライバル決闘ってこんな使い方もできるんだぜ！】#FORTNITE #エンジョイ勢 #フォートナイト #フォトナ＃小学生"
-    },
-    {
-      "videoId": "MfYCw-6Rg30",
-      "publishedAt": "2026-03-17T08:00:22+00:00",
-      "title": "【リロードで最強小学生について行ってみた！】#FORTNITE #エンジョイ勢#フォートナイト #フォトナ＃小学生"
-    },
-    {
-      "videoId": "IvCAqTL_E_g",
-      "publishedAt": "2026-03-13T08:00:31+00:00",
-      "title": "【U12ってこんなに強いの？やばすぎん？w】#FORTNITE #エンジョイ勢#フォートナイト #フォトナ＃小学生"
     }
   ]
 }

@@ -1,21 +1,22 @@
 {
   "Metadata": {
-    "Title": "Study Aim Training v11 内容・構造再監査",
+    "Title": "Study Aim Training v12 構造・出題範囲検証",
     "Status": "PASS",
-    "QuestionCount": 4167,
-    "ReviewedAt": "2026-09-27"
+    "QuestionCount": 6589,
+    "ReviewedAt": "2026-10-14",
+    "ReviewScope": "自動検証は構造・重複・出題枠・数値の整合性を対象とし、公式教材の監修を意味しません。"
   },
   "Errors": [],
   "Warnings": [
-    "同一設問の反復グループが378件あります。異なる学期・学年での復習問題を含みます。"
+    "既存問題に由来する同一設問の反復グループが378件あります。v12では問題文の完全一致を追加しません。"
   ],
   "Metrics": {
     "RemovedMisassignedFallbackQuestions": 5180,
     "RemovedOutOfSequenceQuestions": 26,
     "RemovedSameGradeRepeatedQuestions": 252,
     "AddedCuratedQuestions": 131,
-    "MinimumQuestionsPerGradeTermSubject": 25,
-    "UniqueIds": 4167,
+    "MinimumQuestionsPerGradeTermSubject": 41,
+    "UniqueIds": 6589,
     "ExactDuplicateQuestionTextGroups": 378,
     "ExactDuplicateQuestionTextExcess": 888,
     "ExactDuplicateCompleteItemGroups": 85,
@@ -26,6 +27,7 @@
     "EditorialWordingMatches": 0,
     "FractionalPersonAnswers": 0,
     "MalformedEnglishDistractorMatches": 0,
-    "AddedCurriculumExpansionQuestions": 494
+    "AddedCurriculumExpansionQuestions": 494,
+    "AddedCoverageExpansionQuestions": 2422
   }
 }

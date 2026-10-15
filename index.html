@@ -114,6 +114,7 @@ button{cursor:pointer}
 .pause-actions button{width:100%}
 .setting-row{display:grid;grid-template-columns:1fr 1.2fr;gap:12px;align-items:center;margin:12px 0}
 .setting-row input[type=range]{width:100%}
+.setting-row input[type=number]{width:7em;max-width:100%;padding:6px 8px;border:1px solid #355774;border-radius:8px;background:#19344e;color:var(--text)}
 .setting-row select{width:100%;padding:9px 12px;border:1px solid #355774;border-radius:10px;background:#19344e;color:var(--text)}
 kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:3px 8px;border-radius:6px}
 .result-big{text-align:center;font-size:46px;font-weight:1000;color:var(--gold)}
@@ -280,7 +281,8 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
   <div class="setting-row"><label for="fpsLimit">FPS上限</label><select id="fpsLimit"><option value="0">自動（上限なし）</option><option value="30">30 FPS</option><option value="60">60 FPS</option><option value="120">120 FPS</option><option value="144">144 FPS</option><option value="240">240 FPS</option><option value="360">360 FPS</option></select></div>
   <div class="setting-row"><label for="renderQuality">描画品質</label><select id="renderQuality"><option value="0.75">軽量（カクつくとき）</option><option value="1">標準</option><option value="2">高精細（高負荷）</option></select></div>
   <p class="small">描画：<span id="settingsFpsText">--</span> FPS / 直近1秒の最長フレーム間隔：<span id="settingsFrameTimeText">--</span> ms。平均FPSが高くても、この間隔が大きくなるとカクつきます。FPSは画面の更新回数ではなく描画処理の回数です。端末や画面の性能によって上限に届かない場合があります。</p>
-  <div class="setting-row"><label>視点感度</label><div><input id="sensitivity" type="range" min="0.03" max="2.5" step="0.01"><span id="sensitivityValue"></span></div></div>
+  <div class="setting-row"><label for="sensitivityValue">視点感度<br><small>マウス：VALORANT基準</small></label><div><input id="sensitivity" aria-label="視点感度スライダー" type="range" min="0.001" max="10" step="0.001"><input id="sensitivityValue" type="number" min="0.001" max="10" step="0.001" inputmode="decimal" aria-describedby="sensitivityHelp"></div></div>
+  <p id="sensitivityHelp" class="small">同じマウスDPIで、VALORANTの感度と同じ数値を入力してください（例：0.350）。ブラウザーの入力対応状況によって差が出る場合があります。</p>
   <div class="setting-row"><label>🎮 パッド視点感度</label><div><input id="gamepadSensitivity" type="range" min="0.3" max="3.0" step="0.05"><span id="gamepadSensitivityValue"></span></div></div>
   <div class="setting-row"><label>視点操作</label><label class="check-card" style="margin:0"><input id="invertView" type="checkbox">上下左右を反転する</label></div>
   <div class="setting-row"><label>照準を中央へ戻すキー</label><button id="bindCenter" class="secondary">クリックして変更</button></div>
@@ -453,6 +455,9 @@ const MISS_COOLDOWN_MS=400;
 const BULLET_FLIGHT_MS=40;
 const FPS_LIMITS=[0,30,60,120,144,240,360];
 const RENDER_QUALITIES=[.75,1,2];
+// VALORANT hip-fire: 0.07 degrees per mouse count at sensitivity 1.
+const VALORANT_MOUSE_RADIANS_PER_COUNT=.07*Math.PI/180;
+function normalizeSensitivity(value){const n=Number(value);return Number.isFinite(n)&&n>=.001&&n<=10?Math.round(n*1000)/1000:DEFAULT_SETTINGS.sensitivity;}
 const DEFAULT_SETTINGS={fpsLimit:0,renderQuality:1,sensitivity:1,gamepadSensitivity:1,invertView:false,centerKey:'KeyC',up:'KeyW',left:'KeyA',down:'KeyS',right:'KeyD'};
 let settings={...DEFAULT_SETTINGS};
 // 完走イベントだけをゲーム単位で制御する（永続化やユーザー単位の除外はしない）。
@@ -506,7 +511,7 @@ function bindEvents(){
  canvas.addEventListener('mousedown',e=>{
   if(!game.active)return;
   e.preventDefault();
-  if(canvas.requestPointerLock && document.pointerLockElement!==canvas) canvas.requestPointerLock();
+  lockPointerForPlay();
   fire();
  });
  document.addEventListener('pointerlockchange',()=>{
@@ -594,29 +599,35 @@ function saveMenuSelections(){
  try{localStorage.setItem(STORAGE.menuSelections,JSON.stringify(value));}catch(e){console.warn('メニュー選択設定を保存できませんでした:',e);}
 }
 function keyName(code){return code.replace('Key','').replace('Digit','').replace('Space','スペース').replace('Arrow','矢印');}
-function loadSettings(){try{settings={...DEFAULT_SETTINGS,...JSON.parse(localStorage.getItem(STORAGE.settings)||'{}')}}catch{settings={...DEFAULT_SETTINGS}}if(!FPS_LIMITS.includes(settings.fpsLimit))settings.fpsLimit=0;if(!RENDER_QUALITIES.includes(settings.renderQuality))settings.renderQuality=1;}
+function loadSettings(){try{settings={...DEFAULT_SETTINGS,...JSON.parse(localStorage.getItem(STORAGE.settings)||'{}')}}catch{settings={...DEFAULT_SETTINGS}}if(!FPS_LIMITS.includes(settings.fpsLimit))settings.fpsLimit=0;if(!RENDER_QUALITIES.includes(settings.renderQuality))settings.renderQuality=1;settings.sensitivity=normalizeSensitivity(settings.sensitivity);}
 function updateSettingsUI(){
  $('fpsLimit').value=settings.fpsLimit;
  $('renderQuality').value=settings.renderQuality;
- $('sensitivity').value=settings.sensitivity;$('sensitivityValue').textContent=` ${Number(settings.sensitivity).toFixed(2)}`;
+ $('sensitivity').value=settings.sensitivity;$('sensitivityValue').value=Number(settings.sensitivity).toFixed(3);
  $('gamepadSensitivity').value=settings.gamepadSensitivity;$('gamepadSensitivityValue').textContent=` ${Number(settings.gamepadSensitivity).toFixed(2)}`;
  $('invertView').checked=Boolean(settings.invertView);
- $('sensitivity').oninput=()=>$('sensitivityValue').textContent=` ${Number($('sensitivity').value).toFixed(2)}`;
+ $('sensitivity').oninput=()=>$('sensitivityValue').value=Number($('sensitivity').value).toFixed(3);
+ $('sensitivityValue').oninput=()=>{if($('sensitivityValue').value!==''&&$('sensitivityValue').validity.valid)$('sensitivity').value=$('sensitivityValue').value;};
+ $('sensitivityValue').onchange=()=>{const value=normalizeSensitivity($('sensitivityValue').value);$('sensitivity').value=value;$('sensitivityValue').value=value.toFixed(3);};
  $('gamepadSensitivity').oninput=()=>$('gamepadSensitivityValue').textContent=` ${Number($('gamepadSensitivity').value).toFixed(2)}`;
  $('bindCenter').textContent=keyName(settings.centerKey);
  $('bindMoveUp').textContent=keyName(settings.up);$('bindMoveLeft').textContent=keyName(settings.left);$('bindMoveDown').textContent=keyName(settings.down);$('bindMoveRight').textContent=keyName(settings.right);
  $('keyUpLabel').textContent=`前:${keyName(settings.up)}`;$('keyLeftLabel').textContent=`左:${keyName(settings.left)}`;$('keyDownLabel').textContent=`後:${keyName(settings.down)}`;$('keyRightLabel').textContent=`右:${keyName(settings.right)}`;
 }
-function saveSettings(){settings.fpsLimit=Number($('fpsLimit').value);settings.renderQuality=Number($('renderQuality').value);frameClock.nextDraw=0;frameClock.sampleStart=0;frameClock.drawnFrames=0;frameClock.maxFrameMs=0;settings.sensitivity=Number($('sensitivity').value);settings.gamepadSensitivity=Number($('gamepadSensitivity').value);settings.invertView=$('invertView').checked;localStorage.setItem(STORAGE.settings,JSON.stringify(settings));updateSettingsUI();resizeCanvas();$('settingsModal').classList.add('hidden');if(game.settingsFromPause){$('pauseModal').classList.remove('hidden');game.settingsFromPause=false;}}
+function saveSettings(){settings.fpsLimit=Number($('fpsLimit').value);settings.renderQuality=Number($('renderQuality').value);frameClock.nextDraw=0;frameClock.sampleStart=0;frameClock.drawnFrames=0;frameClock.maxFrameMs=0;settings.sensitivity=normalizeSensitivity($('sensitivityValue').value);settings.gamepadSensitivity=Number($('gamepadSensitivity').value);settings.invertView=$('invertView').checked;localStorage.setItem(STORAGE.settings,JSON.stringify(settings));updateSettingsUI();resizeCanvas();$('settingsModal').classList.add('hidden');if(game.settingsFromPause){$('pauseModal').classList.remove('hidden');game.settingsFromPause=false;}}
 function closeSettingsModal(){$('settingsModal').classList.add('hidden');if(game.settingsFromPause){$('pauseModal').classList.remove('hidden');game.settingsFromPause=false;}}
 function setYoutubePauseInteraction(enabled){$('youtubeWidget')?.classList.toggle('game-paused',enabled);}
 function pauseGame(){if(!game.active||game.pausedByMenu||game.pauseStarted)return;game.pausedByMenu=true;game.pauseStarted=performance.now();releasePointerForUi();setYoutubePauseInteraction(true);$('pauseModal').classList.remove('hidden');}
 function resumeGame(){if(!game.pausedByMenu)return;if(game.pauseStarted){game.pausedTotal+=performance.now()-game.pauseStarted;game.pauseStarted=0;}game.pausedByMenu=false;setYoutubePauseInteraction(false);$('pauseModal').classList.add('hidden');lockPointerForPlay();}
 function selected(selector){return [...document.querySelectorAll(selector+':checked')].map(x=>x.value)}
-function lockPointerForPlay(){
+async function lockPointerForPlay(){
  if(!game.active || !matchMedia('(pointer:fine)').matches)return;
  if(canvas.requestPointerLock && document.pointerLockElement!==canvas){
-  try{canvas.requestPointerLock();}catch(e){}
+  try{await canvas.requestPointerLock({unadjustedMovement:true});}catch(e){
+   if(e.name==='NotSupportedError'){
+    try{await canvas.requestPointerLock();}catch(e){}
+   }
+  }
  }
 }
 function releasePointerForUi(){
@@ -800,7 +811,7 @@ function updateCrosshair(){$('crosshair').style.left='50%';$('crosshair').style.
 function applyMouseLook(){
  const dx=mouseLook.x,dy=mouseLook.y;mouseLook.x=0;mouseLook.y=0;
  if(!game.active||game.pausedByMenu||game.pauseStarted||document.pointerLockElement!==canvas)return;
- const speed=.0022*settings.sensitivity*(settings.invertView?-1:1);
+ const speed=VALORANT_MOUSE_RADIANS_PER_COUNT*settings.sensitivity*(settings.invertView?-1:1);
  game.yaw+=dx*speed;
  game.pitch=Math.max(-.62,Math.min(.62,game.pitch+dy*speed));
 }

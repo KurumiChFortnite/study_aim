@@ -1,9 +1,9 @@
 {
   "Metadata": {
-    "Title": "Study Aim Training v13 構造・学習項目対応検証",
+    "Title": "Study Aim Training v13.1 構造・学習項目対応検証",
     "Status": "PASS",
     "QuestionCount": 10379,
-    "ReviewedAt": "2026-10-15",
+    "ReviewedAt": "2026-10-16",
     "ReviewScope": "全問の構造と追加項目の対応を検証。全ての教育内容の網羅・習得や公式監修の認定ではない。"
   },
   "Errors": [],
@@ -18,7 +18,7 @@
     "MinimumQuestionsPerGradeTermSubject": 65,
     "UniqueIds": 10379,
     "ExactDuplicateQuestionTextGroups": 379,
-    "ExactDuplicateQuestionTextExcess": 889,
+    "ExactDuplicateQuestionTextExcess": 891,
     "ExactDuplicateCompleteItemGroups": 85,
     "ExactDuplicateCompleteItemExcess": 95,
     "EmptyQuestionTexts": 0,

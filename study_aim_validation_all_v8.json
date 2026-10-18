@@ -1,26 +1,26 @@
 {
   "Metadata": {
-    "Title": "Study Aim Training v19 内容追加・構造検証",
+    "Title": "Study Aim Training v53 受領データ反映・構造検証",
     "Status": "PASS",
-    "QuestionCount": 11347,
+    "QuestionCount": 16730,
     "ReviewedAt": "2026-10-18",
-    "ReviewScope": "構造・問題文表現・数値の整合性・追加内容の対応を検証。全教育内容の完全網羅や公式監修の認定ではない。"
+    "ReviewScope": "全件の構造・問題文表現・既存問題の保持を確認。認識できる計算形式を独立に照合し、確認できた不備を修正。重複は許容。"
   },
   "Errors": [],
   "Warnings": [
-    "同一問題文のグループが379件あります。以前の版の学年・学期をまたぐ復習を含みます。v19で問題文の完全一致は追加していません。"
+    "同一問題文のグループは471件。重複は許容する方針に従って保持。全問題の学術的正確性・学期配列の完全保証ではありません。"
   ],
   "Metrics": {
     "RemovedMisassignedFallbackQuestions": 5180,
     "RemovedOutOfSequenceQuestions": 26,
     "RemovedSameGradeRepeatedQuestions": 252,
     "AddedCuratedQuestions": 131,
-    "MinimumQuestionsPerGradeTermSubject": 70,
-    "UniqueIds": 11347,
-    "ExactDuplicateQuestionTextGroups": 379,
-    "ExactDuplicateQuestionTextExcess": 891,
-    "ExactDuplicateCompleteItemGroups": 85,
-    "ExactDuplicateCompleteItemExcess": 95,
+    "MinimumQuestionsPerGradeTermSubject": 76,
+    "UniqueIds": 16730,
+    "ExactDuplicateQuestionTextGroups": 471,
+    "ExactDuplicateQuestionTextExcess": 2208,
+    "ExactDuplicateCompleteItemGroups": 444,
+    "ExactDuplicateCompleteItemExcess": 802,
     "EmptyQuestionTexts": 0,
     "AnswerIndexMismatches": 0,
     "DuplicateChoiceItems": 0,
@@ -35,6 +35,11 @@
     "AddedTargetedSupplementQuestions": 356,
     "NewNumericVerifications": 32,
     "InappropriateQuestionPromptMatches": 0,
-    "AddedFurtherSupplementQuestions": 96
+    "AddedFurtherSupplementQuestions": 90,
+    "ManagementLabelMatches": 0,
+    "ImportedQuestions": 5205,
+    "ImportedQuestionsCorrected": 822,
+    "ImportedQuestionAnswerChecks": 1438,
+    "ImportedExplanationEquationChecks": 1039
   }
 }

@@ -1,22 +1,22 @@
 {
   "Metadata": {
-    "Title": "Study Aim Training v13.1 構造・学習項目対応検証",
+    "Title": "Study Aim Training v19 内容追加・構造検証",
     "Status": "PASS",
-    "QuestionCount": 10379,
-    "ReviewedAt": "2026-10-16",
-    "ReviewScope": "全問の構造と追加項目の対応を検証。全ての教育内容の網羅・習得や公式監修の認定ではない。"
+    "QuestionCount": 11347,
+    "ReviewedAt": "2026-10-18",
+    "ReviewScope": "構造・問題文表現・数値の整合性・追加内容の対応を検証。全教育内容の完全網羅や公式監修の認定ではない。"
   },
   "Errors": [],
   "Warnings": [
-    "同一問題文のグループが379件あります。学年・学期をまたぐ復習を含み、学習項目ごとの反復も許容しています。"
+    "同一問題文のグループが379件あります。以前の版の学年・学期をまたぐ復習を含みます。v19で問題文の完全一致は追加していません。"
   ],
   "Metrics": {
     "RemovedMisassignedFallbackQuestions": 5180,
     "RemovedOutOfSequenceQuestions": 26,
     "RemovedSameGradeRepeatedQuestions": 252,
     "AddedCuratedQuestions": 131,
-    "MinimumQuestionsPerGradeTermSubject": 65,
-    "UniqueIds": 10379,
+    "MinimumQuestionsPerGradeTermSubject": 70,
+    "UniqueIds": 11347,
     "ExactDuplicateQuestionTextGroups": 379,
     "ExactDuplicateQuestionTextExcess": 891,
     "ExactDuplicateCompleteItemGroups": 85,
@@ -31,6 +31,10 @@
     "AddedCoverageExpansionQuestions": 2422,
     "AddedObjectiveAuditQuestions": 3790,
     "AddedObjectiveCount": 1437,
-    "NumericChecksAvailable": 1032
+    "NumericChecksAvailable": 1032,
+    "AddedTargetedSupplementQuestions": 356,
+    "NewNumericVerifications": 32,
+    "InappropriateQuestionPromptMatches": 0,
+    "AddedFurtherSupplementQuestions": 96
   }
 }

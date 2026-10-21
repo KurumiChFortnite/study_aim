@@ -1,14 +1,14 @@
 {
   "Metadata": {
-    "Title": "Study Aim Training v53 受領データ反映・構造検証",
+    "Title": "Study Aim Training v54 計算負荷・問題文検証",
     "Status": "PASS",
     "QuestionCount": 16730,
-    "ReviewedAt": "2026-10-18",
-    "ReviewScope": "全件の構造・問題文表現・既存問題の保持を確認。認識できる計算形式を独立に照合し、確認できた不備を修正。重複は許容。"
+    "ReviewedAt": "2026-10-20",
+    "ReviewScope": "計算結果を求める負荷の大きい設問を式・方針の選択に変更し、対応関係と全件の構造を検証。"
   },
   "Errors": [],
   "Warnings": [
-    "同一問題文のグループは471件。重複は許容する方針に従って保持。全問題の学術的正確性・学期配列の完全保証ではありません。"
+    "同一問題文491グループは、復習・類題を許容する方針で保持しています。"
   ],
   "Metrics": {
     "RemovedMisassignedFallbackQuestions": 5180,
@@ -17,10 +17,10 @@
     "AddedCuratedQuestions": 131,
     "MinimumQuestionsPerGradeTermSubject": 76,
     "UniqueIds": 16730,
-    "ExactDuplicateQuestionTextGroups": 471,
-    "ExactDuplicateQuestionTextExcess": 2208,
-    "ExactDuplicateCompleteItemGroups": 444,
-    "ExactDuplicateCompleteItemExcess": 802,
+    "ExactDuplicateQuestionTextGroups": 491,
+    "ExactDuplicateQuestionTextExcess": 2229,
+    "ExactDuplicateCompleteItemGroups": 449,
+    "ExactDuplicateCompleteItemExcess": 839,
     "EmptyQuestionTexts": 0,
     "AnswerIndexMismatches": 0,
     "DuplicateChoiceItems": 0,
@@ -40,6 +40,8 @@
     "ImportedQuestions": 5205,
     "ImportedQuestionsCorrected": 822,
     "ImportedQuestionAnswerChecks": 1438,
-    "ImportedExplanationEquationChecks": 1039
+    "ImportedExplanationEquationChecks": 1039,
+    "MethodOnlyQuestions": 5345,
+    "WrittenCalculationCandidates": 0
   }
 }

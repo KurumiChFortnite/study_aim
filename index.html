@@ -49,11 +49,11 @@ button{cursor:pointer}
 #questionMeta{text-align:center;color:#8fcde0;font-size:12px;margin-top:5px}
 #arenaWrap{position:relative;flex:1;min-height:0;overflow:hidden}
 #gameCanvas{width:100%;height:100%;display:block;background:#06101a;touch-action:none;cursor:none}
-#crosshair{pointer-events:none;position:absolute;width:28px;height:28px;transform:translate(-50%,-50%);left:50%;top:50%;filter:drop-shadow(0 0 3px #000)}
-#crosshair:before,#crosshair:after{content:"";position:absolute;background:#fff;border-radius:2px}
-#crosshair:before{left:13px;top:0;width:2px;height:28px}
-#crosshair:after{left:0;top:13px;width:28px;height:2px}
-#crosshair .dot{position:absolute;left:11px;top:11px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+#crosshair{pointer-events:none;position:absolute;width:256px;height:256px;transform:translate(-50%,-50%);left:50%;top:50%}
+.reticle-preview{height:144px;display:grid;place-items:center;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:radial-gradient(ellipse at center,#36556b,#07111e)}
+.reticle-preview svg{flex:none}
+#reticleCode{display:block;width:100%;min-height:76px;resize:vertical;padding:10px;background:#091522;color:var(--text);border:1px solid #355774;border-radius:10px;font:13px monospace}
+#reticleMessage[data-error="true"]{color:#ff9aaa}
 #cooldown{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);width:min(360px,75%);height:16px;border:2px solid #dff6ff;border-radius:99px;background:#07111ecc;overflow:hidden;opacity:0;transition:.15s}
 #cooldown.show{opacity:1}
 #cooldownFill{height:100%;width:0;background:linear-gradient(90deg,#ff6476,#ffd45a)}
@@ -123,7 +123,15 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
 .result-item b{display:block;font-size:24px}
 .flash{animation:flash .18s}
 @keyframes flash{50%{filter:brightness(2)}}
+.aim-training-compact{padding:12px;margin-top:18px;box-shadow:none;font-size:12px}
+.aim-training-compact h2{font-size:14px;margin:0 0 6px}
+.aim-training-compact p{margin:6px 0}
+.aim-training-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.aim-training-compact .setting-row{grid-template-columns:1fr;gap:4px;margin:4px 0}
+.aim-training-compact .setting-row select{min-width:0;padding:6px 8px;border-radius:8px;font-size:12px}
+.aim-training-compact button{padding:8px 12px;font-size:12px;border-radius:8px;box-shadow:none}
 @media(max-width:720px){
+ .aim-training-options{grid-template-columns:1fr}.aim-training-compact .setting-row{grid-template-columns:90px minmax(0,1fr);align-items:center}
  .logo-row{gap:4px}.logo h1{font-size:clamp(28px,9vw,34px)}.channel-banner{width:max(54px,17vw);border-radius:7px}
  #topHud{position:relative;height:142px;grid-template-columns:90px 1fr 100px;gap:6px;padding:6px}
  #mobileHomeBtn{display:block;position:absolute;left:7px;top:5px;z-index:5;width:76px;height:30px;padding:0 5px;font-size:12px;box-shadow:0 2px 8px #0008}
@@ -208,6 +216,18 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
   <div class="panel small">
    <b>遊び方：</b> 3Dルーム内の的を中央照準で狙います。PCはWASDで移動、マウスで視点操作、クリックで発射します。矢印キーでも視点を動かせます。スマホはスワイプで視点移動、短いタップで発射します。ストッピングが「必要」のときは移動を止めてから撃ちましょう。射撃すると銃口から弾が飛んでいきます。1つの答えに対応する選択数の的をすべて撃つと判定され、空振りすると0.4秒間撃てません。
   </div>
+  <div id="aimTrainingPanel" class="panel aim-training-compact">
+   <h2>VALORANT向け エイム専用練習</h2>
+   <p class="small">問題データなしでも練習できます。頭（赤）と胴体（青）を狙い、WASDで移動して止まってから撃ちましょう。感度は設定から変更できます。</p>
+   <div class="aim-training-options">
+   <div class="setting-row"><label for="aimDuration">練習時間</label><select id="aimDuration"><option value="30">30秒</option><option value="60" selected>60秒</option></select></div>
+   <div class="setting-row"><label for="aimDistance">標的の距離</label><select id="aimDistance"><option value="near">近距離</option><option value="middle" selected>中距離</option><option value="far">遠距離</option><option value="random">ランダム</option></select></div>
+   <div class="setting-row"><label for="aimStopping">ストッピング</label><select id="aimStopping"><option value="required" selected>必要（速度で射撃精度が変化）</option><option value="straight">常にまっすぐ</option></select></div>
+   </div>
+   <p class="small">頭は1発、胴体は3発で撃破。練習用の簡易モデルで、実際の武器性能・移動挙動の完全再現ではありません。</p>
+   <button id="aimStartBtn" class="primary" type="button">エイム練習スタート</button>
+   <p id="aimBest" class="small"></p>
+  </div>
  </div>
 </section>
 
@@ -249,7 +269,8 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
  </header>
  <div id="arenaWrap">
   <canvas id="gameCanvas"></canvas>
-  <div id="crosshair"><span class="dot"></span></div>
+  <div id="crosshair" aria-hidden="true"></div>
+  <div id="movementStatus" style="position:absolute;left:14px;bottom:14px;font-size:14px;font-weight:800;pointer-events:none" role="status"></div>
   <div id="cooldown"><div id="cooldownFill"></div></div>
   <div id="statusToast"></div>
  </div>
@@ -283,6 +304,14 @@ kbd{background:#081420;border:1px solid #3a5871;border-bottom-width:3px;padding:
   <p class="small">描画：<span id="settingsFpsText">--</span> FPS / 直近1秒の最長フレーム間隔：<span id="settingsFrameTimeText">--</span> ms。平均FPSが高くても、この間隔が大きくなるとカクつきます。FPSは画面の更新回数ではなく描画処理の回数です。端末や画面の性能によって上限に届かない場合があります。</p>
   <div class="setting-row"><label for="sensitivityValue">視点感度<br><small>マウス：VALORANT基準</small></label><div><input id="sensitivity" aria-label="視点感度スライダー" type="range" min="0.001" max="10" step="0.001"><input id="sensitivityValue" type="number" min="0.001" max="10" step="0.001" inputmode="decimal" aria-describedby="sensitivityHelp"></div></div>
   <p id="sensitivityHelp" class="small">同じマウスDPIで、VALORANTの感度と同じ数値を入力してください（例：0.350）。ブラウザーの入力対応状況によって差が出る場合があります。</p>
+  <div class="setting-row"><label for="reticlePreset">レティクル</label><select id="reticlePreset"><option value="classic">従来（十字＋中心点）</option><option value="cross">小さい十字</option><option value="dot">ドット</option><option value="circle">サークル</option><option value="tshape">T字</option><option value="papa">パパの最高のクロスヘア</option><option value="valorant">VALORANTコード</option></select></div>
+  <div id="reticlePreview" class="reticle-preview" role="img" aria-label="レティクルのプレビュー"></div>
+  <label for="reticleCode" class="small">VALORANTのレティクルコード</label>
+  <textarea id="reticleCode" rows="2" maxlength="4096" spellcheck="false" placeholder="0;P;c;5;h;0;0l;4;0o;2;0a;1;0f;0;1b;0" aria-describedby="reticleHelp reticleMessage"></textarea>
+  <button id="importReticle" class="secondary" type="button" style="margin-top:8px">コードをプレビュー</button>
+  <button id="testReticleShot" class="secondary" type="button" style="margin-top:8px">試し撃ち</button>
+  <p id="reticleMessage" class="small" role="status" aria-live="polite"></p>
+  <p id="reticleHelp" class="small">貼り付けると自動でプレビューします。「保存」でゲームに反映され、次回も使えます。通常時（P）の色・輪郭・中心点・内側／外側の線と、射撃エラーのオン／オフ・倍率に対応しています。「試し撃ち」で線の開きを確認できます。開く量・戻る速さは本ゲーム用の簡易動作で、武器ごとの挙動は再現しません。移動エラー、連射時の上線フェード、射撃エラーによる間隔の上書き、ADS・スコープ設定は対象外です。画面解像度により実ゲームと見え方が異なる場合があります。</p>
   <div class="setting-row"><label>🎮 パッド視点感度</label><div><input id="gamepadSensitivity" type="range" min="0.3" max="3.0" step="0.05"><span id="gamepadSensitivityValue"></span></div></div>
   <div class="setting-row"><label>視点操作</label><label class="check-card" style="margin:0"><input id="invertView" type="checkbox">上下左右を反転する</label></div>
   <div class="setting-row"><label>照準を中央へ戻すキー</label><button id="bindCenter" class="secondary">クリックして変更</button></div>
@@ -451,6 +480,10 @@ function validateQuestionCoverage(){
 const STORAGE={scores:'studyAimScoresV1',settings:'studyAimSettingsV1',menuSelections:'studyAimMenuSelectionsV1'};
 function selectedQuestionCount(){return document.querySelector('input[name="questionCount"]:checked')?.value==='15'?15:10;}
 const BASE_TARGET_DISTANCE=13.5;
+// Training approximations, deliberately independent of weapon balance patches.
+const MOVEMENT={speed:5.4,acceleration:45,deceleration:42,accurateSpeed:.75};
+const AIM_STORAGE='studyAimTrainingV1';
+const AIM_PREFERENCES='studyAimTrainingPreferencesV1';
 const MISS_COOLDOWN_MS=400;
 const BULLET_FLIGHT_MS=40;
 const FPS_LIMITS=[0,30,60,120,144,240,360];
@@ -458,7 +491,91 @@ const RENDER_QUALITIES=[.75,1,2];
 // VALORANT hip-fire: 0.07 degrees per mouse count at sensitivity 1.
 const VALORANT_MOUSE_RADIANS_PER_COUNT=.07*Math.PI/180;
 function normalizeSensitivity(value){const n=Number(value);return Number.isFinite(n)&&n>=.001&&n<=10?Math.round(n*1000)/1000:DEFAULT_SETTINGS.sensitivity;}
-const DEFAULT_SETTINGS={fpsLimit:0,renderQuality:1,sensitivity:1,gamepadSensitivity:1,invertView:false,centerKey:'KeyC',up:'KeyW',left:'KeyA',down:'KeyS',right:'KeyD'};
+const DEFAULT_SETTINGS={fpsLimit:0,renderQuality:1,sensitivity:1,reticlePreset:'classic',reticleCode:'',gamepadSensitivity:1,invertView:false,centerKey:'KeyC',up:'KeyW',left:'KeyA',down:'KeyS',right:'KeyD'};
+const RETICLE_PRESETS=['classic','cross','dot','circle','tshape','papa','valorant'];
+const NAMED_RETICLE_CODES={papa:'0;P;c;1;u;FFA500FF;o;1;d;1;z;3;0t;3;0l;0;0v;20;0g;1;0o;20;0a;0;0e;3;1t;0;1l;1;1v;1;1g;1;1o;0;1a;1;1m;0'};
+function reticleProfile(preset,code=''){return preset==='valorant'?parseValorantReticle(code):Object.hasOwn(NAMED_RETICLE_CODES,preset)?parseValorantReticle(NAMED_RETICLE_CODES[preset]):null;}
+// VALORANT v0 share codes omit default values. Only the primary (P) profile is rendered.
+function parseValorantReticle(code){
+ const fail=()=>{throw new Error('コードを読み込めません。VALORANTからコピーした「0;…;P;…」形式のコードを確認してください。');};
+ if(typeof code!=='string'||code.length>4096)fail();
+ const tokens=code.trim().split(';').map(s=>s.trim());
+ if(tokens.shift()!=='0')fail();
+ let section='',primary=false;const p={};const sections=new Set();
+ for(let i=0;i<tokens.length;){
+  const key=tokens[i++];
+  if(['P','A','S'].includes(key)){if(sections.has(key))fail();sections.add(key);section=key;if(key==='P')primary=true;continue;}
+  if(!/^(?:[01][a-z]|[a-z])$/.test(key)||i>=tokens.length)fail();
+  const value=tokens[i++];
+  if(key==='u'){if(!/^[\da-f]{6}([\da-f]{2})?$/i.test(value))fail();}
+  else if(!/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(value)||!Number.isFinite(Number(value)))fail();
+  if(section==='P'){if(Object.hasOwn(p,key))fail();p[key]=value;}
+ }
+ if(!primary)fail();
+ const number=(key,fallback,max,integer=false)=>{
+  if(p[key]===undefined)return fallback;
+  const n=Number(p[key]);if(n<0||n>max||(integer&&!Number.isInteger(n)))fail();return n;
+ };
+ const flag=(key,fallback)=>Boolean(number(key,Number(fallback),1,true));
+ const palette=['#ffffff','#00ff00','#7fff00','#dfff00','#ffff00','#00ffff','#ff00ff','#ff0000'];
+ const colorIndex=number('c',0,8,true);
+ const color=colorIndex===8?'#'+(p.u||'FFFFFFFF').slice(0,6):palette[colorIndex];
+ const lines=[0,1].map(i=>({enabled:flag(i+'b',true),length:number(i+'l',i?2:6,20,true),vertical:number(i+'v',i?2:6,20,true),separate:flag(i+'g',false),thickness:number(i+'t',2,10,true),gap:number(i+'o',i?10:3,40,true),opacity:number(i+'a',i?.35:.8,1),shootingError:flag(i+'f',true),shootingMultiplier:number(i+'e',1,3)}));
+ return {color,outline:flag('h',true),outlineWidth:number('t',1,6,true),outlineOpacity:number('o',.5,1),dot:flag('d',false),dotSize:number('z',2,6,true),dotOpacity:number('a',1,1),hideTop:false,lines};
+}
+function reticleSvg(preset,code='',shootingError=0,profile=null){
+ const svg=body=>`<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="-128 -128 256 256" aria-hidden="true">${body}</svg>`;
+ if(preset==='classic')return svg('<g fill="white" style="filter:drop-shadow(0 0 3px #000)"><rect x="-1" y="-14" width="2" height="28" rx="1"/><rect x="-14" y="-1" width="28" height="2" rx="1"/><circle r="3" fill="#35d6ff"/></g>');
+ if(preset==='circle')return svg('<circle r="8" fill="none" stroke="black" stroke-width="4"/><circle r="8" fill="none" stroke="#35d6ff" stroke-width="2"/>');
+ const r=profile||reticleProfile(preset,code)||{color:'#35d6ff',outline:true,outlineWidth:1,outlineOpacity:.8,dot:preset==='dot',dotSize:4,dotOpacity:1,hideTop:preset==='tshape',lines:[{enabled:preset!=='dot',length:5,thickness:2,gap:3,opacity:1}]};
+ const shapes=[];
+ // Transparent line fills still have visible outlines (common in imported profiles).
+ const rect=(x,y,w,h,opacity)=>{if(w>0&&h>0)shapes.push({x,y,w,h,opacity});};
+ for(const line of r.lines){
+  if(!line.enabled)continue;
+  const {length:l,thickness:t,opacity:a}=line,v=line.separate?line.vertical:l;
+  const g=line.gap+(line.shootingError?Math.max(0,shootingError)*line.shootingMultiplier:0);
+  rect(-g-l,-t/2,l,t,a);rect(g,-t/2,l,t,a);
+  if(!r.hideTop)rect(-t/2,-g-v,t,v,a);rect(-t/2,g,t,v,a);
+ }
+ if(r.dot)rect(-r.dotSize/2,-r.dotSize/2,r.dotSize,r.dotSize,r.dotOpacity);
+ const outlines=r.outline&&r.outlineWidth>0?shapes.map(s=>`<rect x="${s.x-r.outlineWidth/2}" y="${s.y-r.outlineWidth/2}" width="${s.w+r.outlineWidth}" height="${s.h+r.outlineWidth}" fill="none" stroke="#000" stroke-width="${r.outlineWidth}" opacity="${r.outlineOpacity}"/>`).join(''):'';
+ return svg(outlines+shapes.filter(s=>s.opacity>0).map(s=>`<rect x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" fill="${r.color}" opacity="${s.opacity}"/>`).join(''));
+}
+// Visual feedback only: share codes contain no weapon bloom or recovery timings.
+const RETICLE_SHOOTING={kick:8,max:16,recoveryPerMs:.048};
+const reticleMotion={amount:0,shotTime:null,previewTime:null,profileKey:null,profile:null,renderKey:null};
+function shootingErrorAt(amount,shotTime,time){return shotTime===null?0:Math.max(0,amount-Math.max(0,time-shotTime)*RETICLE_SHOOTING.recoveryPerMs);}
+function resetReticleShooting(){reticleMotion.amount=0;reticleMotion.shotTime=null;}
+function recordReticleShot(now){
+ const time=trainingElapsed(now);
+ reticleMotion.amount=Math.min(RETICLE_SHOOTING.max,shootingErrorAt(reticleMotion.amount,reticleMotion.shotTime,time)+RETICLE_SHOOTING.kick);
+ reticleMotion.shotTime=time;updateCrosshair(now);
+}
+function updateReticlePreview(now){
+ if(reticleMotion.previewTime===null)return;
+ if($('settingsModal').classList.contains('hidden')){reticleMotion.previewTime=null;return;}
+ const error=shootingErrorAt(RETICLE_SHOOTING.kick,reticleMotion.previewTime,now);
+ $('reticlePreview').innerHTML=reticleSvg($('reticlePreset').value,$('reticleCode').value,Math.round(error*10)/10);
+ if(!error)reticleMotion.previewTime=null;
+}
+function previewReticle(fromCode=false){
+ reticleMotion.previewTime=null;
+ if(fromCode)$('reticlePreset').value='valorant';
+ try{
+  const markup=reticleSvg($('reticlePreset').value,$('reticleCode').value);
+  $('reticlePreview').innerHTML=markup;
+  const r=reticleProfile($('reticlePreset').value,$('reticleCode').value);
+  if(r){
+   const describe=line=>!line.enabled?'非表示':line.shootingError?`オン（倍率 ${line.shootingMultiplier}）`:'オフ';
+   $('reticleMessage').textContent=`射撃エラー：インナーライン ${describe(r.lines[0])}／アウターライン ${describe(r.lines[1])}。「保存」で反映します。`;
+  }else $('reticleMessage').textContent='「保存」で反映します。';
+  $('reticleMessage').dataset.error='false';$('reticleCode').setAttribute('aria-invalid','false');return true;
+ }catch(error){
+  $('reticlePreview').innerHTML='';$('reticleMessage').textContent=error.message;
+  $('reticleMessage').dataset.error='true';$('reticleCode').setAttribute('aria-invalid','true');return false;
+ }
+}
 let settings={...DEFAULT_SETTINGS};
 // 完走イベントだけをゲーム単位で制御する（永続化やユーザー単位の除外はしない）。
 let gameCompleteTracked=true;
@@ -491,20 +608,23 @@ async function init(){
  }
 }
 function bindEvents(){
+ $('aimStartBtn').onclick=()=>startAimTraining(false);
+ for(const id of ['aimDuration','aimDistance','aimStopping'])$(id).addEventListener('change',()=>{saveAimPreferences();renderAimBest();});
+ loadAimPreferences();renderAimBest();
  ['gradeChecks','subjectChecks','targetCountChecks','distanceModeChecks','stoppingModeChecks','questionCountChecks'].forEach(id=>$(id).addEventListener('change',saveMenuSelections));
  $('startBtn').onclick=()=>startGame(false);
- $('settingsBtn').onclick=()=>{game.settingsFromPause=false;$('settingsModal').classList.remove('hidden');};
+ $('settingsBtn').onclick=()=>{game.settingsFromPause=false;updateSettingsUI();$('settingsModal').classList.remove('hidden');};
  $('closeSettings').onclick=closeSettingsModal; $('saveSettings').onclick=saveSettings;
  $('resumeBtn').onclick=resumeGame;
- $('pauseSettingsBtn').onclick=()=>{game.settingsFromPause=true;$('pauseModal').classList.add('hidden');$('settingsModal').classList.remove('hidden');};
+ $('pauseSettingsBtn').onclick=()=>{game.settingsFromPause=true;updateSettingsUI();$('pauseModal').classList.add('hidden');$('settingsModal').classList.remove('hidden');};
  $('pauseHomeBtn').onclick=()=>{if(confirm('現在のゲームを終了してホームに戻りますか？'))backToMenu();};
  $('mobileHomeBtn').onclick=()=>{if(confirm('現在のゲームを終了してホームに戻りますか？'))backToMenu();};
- $('resetScoresBtn').onclick=()=>{if(confirm('すべてのハイスコアを削除しますか？')){localStorage.removeItem(STORAGE.scores);renderScores();}};
+ $('resetScoresBtn').onclick=()=>{if(confirm('勉強・エイム練習のすべてのハイスコアを削除しますか？')){localStorage.removeItem(STORAGE.scores);localStorage.removeItem(AIM_STORAGE);renderScores();renderAimBest();}};
  $('nextBtn').onclick=()=>{
   if(game.pauseStarted){game.pausedTotal+=performance.now()-game.pauseStarted;game.pauseStarted=0;}
   $('explainModal').classList.add('hidden'); showQuestion(); lockPointerForPlay();
  };
- $('retryBtn').onclick=()=>{ $('resultModal').classList.add('hidden'); startGame(true); };
+ $('retryBtn').onclick=()=>{ $('resultModal').classList.add('hidden'); if(game.mode==='aim')startAimTraining(true);else startGame(true); };
  $('menuBtn').onclick=backToMenu;
 
  // PC：クリックでポインターロック、マウス移動で視点操作、クリックで発射
@@ -573,7 +693,8 @@ function bindEvents(){
   game.pitch=Math.max(-.62,Math.min(.62,game.pitch));
  });
  window.addEventListener('keyup',e=>{if([settings.up,settings.left,settings.down,settings.right].includes(e.code))game.moveKeys[e.code]=false;});
- window.addEventListener('blur',()=>game.moveKeys={});
+ window.addEventListener('blur',()=>{game.moveKeys={};pauseGame();});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseGame();});
  window.addEventListener('resize',resizeCanvas);
  setupKeyBinder('bindCenter','centerKey');
  setupKeyBinder('bindMoveUp','up'); setupKeyBinder('bindMoveLeft','left'); setupKeyBinder('bindMoveDown','down'); setupKeyBinder('bindMoveRight','right');
@@ -599,8 +720,14 @@ function saveMenuSelections(){
  try{localStorage.setItem(STORAGE.menuSelections,JSON.stringify(value));}catch(e){console.warn('メニュー選択設定を保存できませんでした:',e);}
 }
 function keyName(code){return code.replace('Key','').replace('Digit','').replace('Space','スペース').replace('Arrow','矢印');}
-function loadSettings(){try{settings={...DEFAULT_SETTINGS,...JSON.parse(localStorage.getItem(STORAGE.settings)||'{}')}}catch{settings={...DEFAULT_SETTINGS}}if(!FPS_LIMITS.includes(settings.fpsLimit))settings.fpsLimit=0;if(!RENDER_QUALITIES.includes(settings.renderQuality))settings.renderQuality=1;settings.sensitivity=normalizeSensitivity(settings.sensitivity);}
+function loadSettings(){try{settings={...DEFAULT_SETTINGS,...JSON.parse(localStorage.getItem(STORAGE.settings)||'{}')}}catch{settings={...DEFAULT_SETTINGS}}if(!FPS_LIMITS.includes(settings.fpsLimit))settings.fpsLimit=0;if(!RENDER_QUALITIES.includes(settings.renderQuality))settings.renderQuality=1;settings.sensitivity=normalizeSensitivity(settings.sensitivity);if(!RETICLE_PRESETS.includes(settings.reticlePreset))settings.reticlePreset='classic';if(typeof settings.reticleCode!=='string')settings.reticleCode='';if(settings.reticlePreset==='valorant'){try{parseValorantReticle(settings.reticleCode);}catch{settings.reticlePreset='classic';settings.reticleCode='';}}}
 function updateSettingsUI(){
+ $('reticlePreset').value=settings.reticlePreset;$('reticleCode').value=settings.reticleCode;
+ $('reticlePreset').onchange=()=>previewReticle();
+ $('reticleCode').oninput=()=>previewReticle(true);
+ $('importReticle').onclick=()=>previewReticle(true);
+ $('testReticleShot').onclick=()=>{if(previewReticle())reticleMotion.previewTime=performance.now();};
+ previewReticle();updateCrosshair();
  $('fpsLimit').value=settings.fpsLimit;
  $('renderQuality').value=settings.renderQuality;
  $('sensitivity').value=settings.sensitivity;$('sensitivityValue').value=Number(settings.sensitivity).toFixed(3);
@@ -614,10 +741,10 @@ function updateSettingsUI(){
  $('bindMoveUp').textContent=keyName(settings.up);$('bindMoveLeft').textContent=keyName(settings.left);$('bindMoveDown').textContent=keyName(settings.down);$('bindMoveRight').textContent=keyName(settings.right);
  $('keyUpLabel').textContent=`前:${keyName(settings.up)}`;$('keyLeftLabel').textContent=`左:${keyName(settings.left)}`;$('keyDownLabel').textContent=`後:${keyName(settings.down)}`;$('keyRightLabel').textContent=`右:${keyName(settings.right)}`;
 }
-function saveSettings(){settings.fpsLimit=Number($('fpsLimit').value);settings.renderQuality=Number($('renderQuality').value);frameClock.nextDraw=0;frameClock.sampleStart=0;frameClock.drawnFrames=0;frameClock.maxFrameMs=0;settings.sensitivity=normalizeSensitivity($('sensitivityValue').value);settings.gamepadSensitivity=Number($('gamepadSensitivity').value);settings.invertView=$('invertView').checked;localStorage.setItem(STORAGE.settings,JSON.stringify(settings));updateSettingsUI();resizeCanvas();$('settingsModal').classList.add('hidden');if(game.settingsFromPause){$('pauseModal').classList.remove('hidden');game.settingsFromPause=false;}}
+function saveSettings(){if(!previewReticle())return;settings.reticlePreset=$('reticlePreset').value;settings.reticleCode=$('reticleCode').value.trim();settings.fpsLimit=Number($('fpsLimit').value);settings.renderQuality=Number($('renderQuality').value);frameClock.nextDraw=0;frameClock.sampleStart=0;frameClock.drawnFrames=0;frameClock.maxFrameMs=0;settings.sensitivity=normalizeSensitivity($('sensitivityValue').value);settings.gamepadSensitivity=Number($('gamepadSensitivity').value);settings.invertView=$('invertView').checked;localStorage.setItem(STORAGE.settings,JSON.stringify(settings));updateSettingsUI();resizeCanvas();$('settingsModal').classList.add('hidden');if(game.settingsFromPause){$('pauseModal').classList.remove('hidden');game.settingsFromPause=false;}}
 function closeSettingsModal(){$('settingsModal').classList.add('hidden');if(game.settingsFromPause){$('pauseModal').classList.remove('hidden');game.settingsFromPause=false;}}
 function setYoutubePauseInteraction(enabled){$('youtubeWidget')?.classList.toggle('game-paused',enabled);}
-function pauseGame(){if(!game.active||game.pausedByMenu||game.pauseStarted)return;game.pausedByMenu=true;game.pauseStarted=performance.now();releasePointerForUi();setYoutubePauseInteraction(true);$('pauseModal').classList.remove('hidden');}
+function pauseGame(){if(!game.active||game.pausedByMenu||game.pauseStarted)return;game.pausedByMenu=true;game.pauseStarted=performance.now();game.moveKeys={};game.velocityX=0;game.velocityZ=0;releasePointerForUi();setYoutubePauseInteraction(true);$('pauseModal').classList.remove('hidden');}
 function resumeGame(){if(!game.pausedByMenu)return;if(game.pauseStarted){game.pausedTotal+=performance.now()-game.pauseStarted;game.pauseStarted=0;}game.pausedByMenu=false;setYoutubePauseInteraction(false);$('pauseModal').classList.add('hidden');lockPointerForPlay();}
 function selected(selector){return [...document.querySelectorAll(selector+':checked')].map(x=>x.value)}
 async function lockPointerForPlay(){
@@ -637,13 +764,14 @@ function releasePointerForUi(){
 }
 function startGame(retry=false){
  if(!questionDataReady)return alert('問題JSONの読み込みが完了していません。');
+ game.mode='study';game.sessionId=(game.sessionId||0)+1;game.velocityX=0;game.velocityZ=0;setTrainingLabels(false);
  if(!retry)game.questionCount=selectedQuestionCount();
  if(!retry){game.selectedGrades=selected('#gradeChecks input');game.selectedSubjects=selected('#subjectChecks input');game.targetCount=Number(document.querySelector('input[name="targetCount"]:checked')?.value)||4;game.distanceMode=document.querySelector('input[name="distanceMode"]:checked')?.value||'fixed';game.stoppingMode=document.querySelector('input[name="stoppingMode"]:checked')?.value||'straight';}
  if(!game.selectedGrades.length)return alert('学年を1つ以上選んでください。');
  if(!game.selectedSubjects.length)return alert('教科を1つ以上選んでください。');
  let pool=QUESTIONS.filter(q=>game.selectedGrades.some(key=>{const advanced=key.endsWith('_adv');const base=advanced?key.slice(0,-4):key;return base===`${q.grade}_t${q.term}`&&(advanced?q.difficulty==='advanced':q.difficulty!=='advanced');})&&game.selectedSubjects.includes(q.subject));
  if(!pool.length)return alert('該当する問題がありません。学年または教科を変更してください。');
- game.questions=sampleQuestions(pool,game.questionCount);game.index=0;game.correct=0;game.shots=0;game.hits=0;game.missShots=0;game.locked=false;game.cooldownUntil=0;game.active=true;game.pausedByMenu=false;game.playerX=0;game.playerY=0;game.playerZ=0;game.moveKeys={};game.shotMarks=[];game.startTime=performance.now();game.elapsed=0;game.pausedTotal=0;game.pauseStarted=0;setYoutubePauseInteraction(false);$('pauseModal').classList.add('hidden');
+ resetReticleShooting();game.questions=sampleQuestions(pool,game.questionCount);game.index=0;game.correct=0;game.shots=0;game.hits=0;game.missShots=0;game.locked=false;game.cooldownUntil=0;game.active=true;game.pausedByMenu=false;game.playerX=0;game.playerY=0;game.playerZ=0;game.moveKeys={};game.shotMarks=[];game.startTime=performance.now();game.elapsed=0;game.pausedTotal=0;game.pauseStarted=0;setYoutubePauseInteraction(false);$('pauseModal').classList.add('hidden');
  setQuestionPosition();
  $('menuScreen').classList.add('hidden');$('gameScreen').classList.remove('hidden');resizeCanvas();centerAim();showQuestion();
  // スタートボタンのクリック操作をそのまま利用し、開始直後にFPS視点へ入る
@@ -750,12 +878,13 @@ function fire(){
 }
 function fireAt(cx,cy){
  if(!game.active||game.locked||game.pausedByMenu||game.pauseStarted)return;const now=performance.now();if(now<game.cooldownUntil)return;
- const moving=game.stoppingMode==='required'&&getMovementInput().magnitude>.2;
+ if(game.mode==='aim'){fireAimTraining(cx,cy,now);return;}
+ const moving=game.stoppingMode==='required'&&movementSpeed()>MOVEMENT.accurateSpeed;
  const spread=moving?Math.min(cw,ch)*(.12+Math.random()*.12):0;
  const angle=Math.random()*Math.PI*2;
  const shotX=moving?Math.max(12*DPR,Math.min(cw-12*DPR,cx+Math.cos(angle)*spread)):cx;
  const shotY=moving?Math.max(12*DPR,Math.min(ch-12*DPR,cy+Math.sin(angle)*spread)):cy;
- game.shots++;let best=null;
+ game.shots++;recordReticleShot(now);let best=null;
  for(const p of game.projectedDots){
   if(p.dot.hit||p.target.completed||p.behind)continue;
   const d=Math.hypot(p.sx-shotX,p.sy-shotY);
@@ -767,7 +896,7 @@ function fireAt(cx,cy){
   game.hits++;best.dot.hit=true;best.dot.flash=1;
   const remaining=best.target.dots.filter(d=>!d.hit).length;
   if(remaining===0){
-   best.target.completed=true;showToast(game.targetCount===1?'命中！ 判定します':'4つ命中！ 判定します','good');setTimeout(()=>answerTarget(best.target.index),220);
+   best.target.completed=true;showToast(game.targetCount===1?'命中！ 判定します':'4つ命中！ 判定します','good');scheduleStudyAction(()=>answerTarget(best.target.index),220);
   }else showToast(`命中！ あと${remaining}個`,'good');
  }else{
   game.missShots++;game.cooldownUntil=now+MISS_COOLDOWN_MS;showToast(moving?'移動中の射撃がずれた！ 0.4秒クールタイム':'MISS - 0.4秒クールタイム','bad');
@@ -778,12 +907,14 @@ function answerTarget(index){
  if(game.locked)return;game.locked=true;const q=game.questions[game.index];
  window.StudyAimAnalytics?.trackEvent('answer',{correct:index===q.answer});
  window.StudyAimYouTube?.onProblemCleared();
- if(index===q.answer){game.correct++;$('correctCount').textContent=game.correct;showToast(`正解！ ${q.ex}`,'good');setTimeout(nextQuestion,650);}else{
-  showToast('不正解 - 解説を読もう','bad');setTimeout(()=>{game.pauseStarted=performance.now();releasePointerForUi();$('explainTitle').textContent=`不正解　正解：${q.choices[q.answer]}`;$('explainText').textContent=q.ex;$('explainModal').classList.remove('hidden');},320);
+ if(index===q.answer){game.correct++;$('correctCount').textContent=game.correct;showToast(`正解！ ${q.ex}`,'good');scheduleStudyAction(nextQuestion,650);}else{
+  showToast('不正解 - 解説を読もう','bad');scheduleStudyAction(()=>{game.pauseStarted=performance.now();releasePointerForUi();$('explainTitle').textContent=`不正解　正解：${q.choices[q.answer]}`;$('explainText').textContent=q.ex;$('explainModal').classList.remove('hidden');},320);
  }
 }
-function nextQuestion(){if(!game.active)return;game.index++;if(game.index>=game.questionCount){finishGame();return;}setQuestionPosition();showQuestion();}
+function scheduleStudyAction(action,delay){const session=game.sessionId;setTimeout(()=>{if(game.active&&game.mode==='study'&&game.sessionId===session)action();},delay);}
+function nextQuestion(){if(!game.active||game.mode!=='study')return;game.index++;if(game.index>=game.questionCount){finishGame();return;}setQuestionPosition();showQuestion();}
 function finishGame(){
+ setTrainingLabels(false);
  if(!gameCompleteTracked&&game.index>=game.questionCount){
   gameCompleteTracked=true;
   window.StudyAimAnalytics?.trackEvent('game_complete');
@@ -799,7 +930,7 @@ function scoreKey(){return [...game.selectedGrades].sort().join('+')+'__'+[...ga
 function scoreLabel(key){const [g,s,targetKey,questionKey,distanceKey,stoppingKey]=key.split('__');const targetCount=targetKey?.replace('targets','')||'4';const questionCount=questionKey?.replace('q','')||'15';const distance=distanceKey==='distancerandom'?'ランダム':'一定';const stopping=stoppingKey==='stoppingrequired'?'必要':'常にまっすぐ';return `${g.split('+').map(x=>GRADE_TERMS[x]?.label||GRADES[x]||x).join('＋')} / ${s.split('+').join('・')} / 的${targetCount}つ / ${distance} / ${stopping} / ${questionCount}問`}
 function getScores(){try{return JSON.parse(localStorage.getItem(STORAGE.scores)||'{}')}catch{return {}}}
 function renderScores(){const entries=Object.entries(getScores()).sort((a,b)=>a[1].time-b[1].time);$('scoreList').innerHTML=entries.length?entries.map(([k,v])=>`<div class="score-row"><span>${scoreLabel(k)}</span><b>${formatTime(v.time)}</b></div>`).join(''):'<div class="small">まだ記録がありません。</div>'}
-function backToMenu(){game.active=false;game.pausedByMenu=false;game.pauseStarted=0;releasePointerForUi();setYoutubePauseInteraction(false);$('pauseModal').classList.add('hidden');$('settingsModal').classList.add('hidden');$('explainModal').classList.add('hidden');$('resultModal').classList.add('hidden');$('gameScreen').classList.add('hidden');$('menuScreen').classList.remove('hidden');renderScores();}
+function backToMenu(){game.active=false;game.pausedByMenu=false;game.pauseStarted=0;releasePointerForUi();setYoutubePauseInteraction(false);$('pauseModal').classList.add('hidden');$('settingsModal').classList.add('hidden');$('explainModal').classList.add('hidden');$('resultModal').classList.add('hidden');$('gameScreen').classList.add('hidden');$('menuScreen').classList.remove('hidden');renderScores();renderAimBest();}
 function accuracy(){return game.shots?Math.round(game.hits/game.shots*100):100}
 function updateAccuracy(){$('accuracyText').textContent=accuracy()+'%'}
 function formatTime(ms){const m=Math.floor(ms/60000),s=Math.floor(ms/1000)%60,x=Math.floor(ms%1000);return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(x).padStart(3,'0')}`}
@@ -807,7 +938,19 @@ function showToast(text,type){const el=$('statusToast');el.textContent=text;el.s
 function resizeCanvas(){const r=canvas.getBoundingClientRect();DPR=Math.min(devicePixelRatio||1,settings.renderQuality);MOBILE_TARGET_SCALE=matchMedia('(pointer:coarse)').matches||innerWidth<=720?5.0:1;canvas.width=Math.max(1,Math.floor(r.width*DPR));canvas.height=Math.max(1,Math.floor(r.height*DPR));cw=canvas.width;ch=canvas.height;skyGradient=null;game.projectedDots=[];frameClock.lastDraw=0;updateCrosshair();}
 function centerAim(){mouseLook.x=0;mouseLook.y=0;game.yaw=0;game.pitch=0;game.aimX=cw/2;game.aimY=ch/2;updateCrosshair()}
 function moveAim(dx,dy){const step=.045*settings.sensitivity;const direction=settings.invertView?-1:1;game.yaw+=dx*step*direction;game.pitch=Math.max(-.62,Math.min(.62,game.pitch+dy*step*direction));}
-function updateCrosshair(){$('crosshair').style.left='50%';$('crosshair').style.top='50%'}
+function updateCrosshair(now=performance.now()){
+ const profileKey=JSON.stringify([settings.reticlePreset,settings.reticleCode]);
+ if(reticleMotion.profileKey!==profileKey){
+  reticleMotion.profileKey=profileKey;
+  reticleMotion.profile=reticleProfile(settings.reticlePreset,settings.reticleCode);
+ }
+ const dynamic=reticleMotion.profile?.lines.some(line=>line.enabled&&line.shootingError&&line.shootingMultiplier>0);
+ const error=dynamic&&game.active?Math.round(shootingErrorAt(reticleMotion.amount,reticleMotion.shotTime,trainingElapsed(now))*10)/10:0;
+ const renderKey=profileKey+':'+error;
+ if(reticleMotion.renderKey===renderKey)return;
+ reticleMotion.renderKey=renderKey;
+ $('crosshair').innerHTML=reticleSvg(settings.reticlePreset,settings.reticleCode,error,reticleMotion.profile);
+}
 function applyMouseLook(){
  const dx=mouseLook.x,dy=mouseLook.y;mouseLook.x=0;mouseLook.y=0;
  if(!game.active||game.pausedByMenu||game.pauseStarted||document.pointerLockElement!==canvas)return;
@@ -817,6 +960,8 @@ function applyMouseLook(){
 }
 function loop(now){
  requestAnimationFrame(loop);
+ updateReticlePreview(now);
+ if(game.active&&game.mode==='aim'&&!game.pauseStarted&&trainingElapsed(now)>=game.durationMs)finishAimTraining();
  const dt=Math.min(.04,(now-game.lastFrame)/1000||0);game.lastFrame=now;applyMouseLook();updateGamepad(dt);updatePlayerMovement(dt);
  if(settings.fpsLimit){
   if(now+.5<frameClock.nextDraw)return;
@@ -826,8 +971,9 @@ function loop(now){
  const frameMs=frameClock.lastDraw?now-frameClock.lastDraw:0;
  const drawDt=Math.min(.1,frameMs/1000);frameClock.lastDraw=now;
  drawArena(now,drawDt);
+ updateCrosshair(now);
  if(game.active){
-  if(now-frameClock.lastHud>=50){const pausedNow=game.pauseStarted?now-game.pauseStarted:0;$('timerText').textContent=formatTime(now-game.startTime-game.pausedTotal-pausedNow);frameClock.lastHud=now;}
+  if(now-frameClock.lastHud>=50){const elapsed=trainingElapsed(now);$('timerText').textContent=formatTime(game.mode==='aim'?Math.max(0,game.durationMs-elapsed):elapsed);updateMovementStatus();frameClock.lastHud=now;}
   updateCooldown(now);
   if(!frameClock.sampleStart){frameClock.sampleStart=now;frameClock.drawnFrames=0;frameClock.maxFrameMs=0;}
   else{
@@ -881,17 +1027,26 @@ function getMovementInput(){
 function updatePlayerMovement(dt){
  if(!game.active||game.pausedByMenu||game.pauseStarted||game.locked)return;
  let {forward,strafe,magnitude}=getMovementInput();
- if(!magnitude)return;
- const length=Math.hypot(forward,strafe)||1;forward/=length;strafe/=length;
- const speed=5.4;
+ const length=Math.max(1,magnitude);forward/=length;strafe/=length;
+ const speed=MOVEMENT.speed;
  const sin=Math.sin(game.yaw),cos=Math.cos(game.yaw);
- game.playerX+=(sin*forward+cos*strafe)*speed*dt;
- game.playerZ+=(cos*forward-sin*strafe)*speed*dt;
+ const desiredX=(sin*forward+cos*strafe)*speed,desiredZ=(cos*forward-sin*strafe)*speed;
+ const vx=game.velocityX||0,vz=game.velocityZ||0;
+ const dx=desiredX-vx,dz=desiredZ-vz,delta=Math.hypot(dx,dz);
+ const step=(magnitude?MOVEMENT.acceleration:MOVEMENT.deceleration)*dt;
+ const factor=delta?Math.min(1,step/delta):1;
+ game.velocityX=vx+dx*factor;game.velocityZ=vz+dz*factor;
+ game.playerX+=game.velocityX*dt;
+ game.playerZ+=game.velocityZ*dt;
  // 回答パネルへ入り込んだり、部屋の外へ出たりしないよう制限
+ const maxZ=game.mode==='aim'?2:8.2;
+ const minZ=game.distanceMode==='random'?-BASE_TARGET_DISTANCE:-3;
+ if(game.playerX<=-9.5||game.playerX>=9.5)game.velocityX=0;
+ if(game.playerZ<=minZ||game.playerZ>=maxZ)game.velocityZ=0;
  game.playerX=Math.max(-9.5,Math.min(9.5,game.playerX));
- game.playerZ=Math.max(game.distanceMode==='random'?-BASE_TARGET_DISTANCE:-3,Math.min(8.2,game.playerZ));
+ game.playerZ=Math.max(minZ,Math.min(maxZ,game.playerZ));
 }
-function updateCooldown(now){const remain=Math.max(0,game.cooldownUntil-now);const active=remain>0;$('cooldown').classList.toggle('show',active);$('fireBtn').classList.toggle('cool',active);$('cooldownFill').style.width=(active?(1-remain/MISS_COOLDOWN_MS)*100:0)+'%'}
+function updateCooldown(now){const remain=Math.max(0,game.cooldownUntil-now);const active=remain>0;$('cooldown').classList.toggle('show',active);$('fireBtn').classList.toggle('cool',active);$('cooldownFill').style.width=(active?(1-remain/(game.mode==='aim'?160:MISS_COOLDOWN_MS))*100:0)+'%'}
 function rotateToCamera(x,y,z){
  // プレイヤー位置を原点として、世界座標をカメラ座標へ変換
  x-=game.playerX;y-=game.playerY;z-=game.playerZ;
@@ -1005,6 +1160,7 @@ function drawArena(now,dt){
  ctx.clearRect(0,0,cw,ch);
  if(!skyGradient){skyGradient=ctx.createLinearGradient(0,0,0,ch);skyGradient.addColorStop(0,'#173451');skyGradient.addColorStop(.52,'#091725');skyGradient.addColorStop(1,'#02060a');}ctx.fillStyle=skyGradient;ctx.fillRect(0,0,cw,ch);
  if(!game.active&&$('gameScreen').classList.contains('hidden'))return;
+ if(game.mode==='aim'){drawAimTraining(now);return;}
  const q=game.questions[game.index];if(!q)return;
 
  // 3D訓練ルーム：床・天井・側壁のグリッド
@@ -1047,6 +1203,125 @@ function drawArena(now,dt){
  drawBullets(now);
  ctx.font=`700 ${12*DPR}px system-ui`;ctx.textAlign='right';ctx.fillStyle=performance.now()<game.cooldownUntil?'#ff6476':'#56e98b';ctx.fillText(performance.now()<game.cooldownUntil?'RELOADING...':'READY',cw-14*DPR,ch-14*DPR);
  if(document.pointerLockElement!==canvas && matchMedia('(pointer:fine)').matches){ctx.textAlign='center';ctx.fillStyle='#d9f5ff';ctx.font=`700 ${13*DPR}px system-ui`;ctx.fillText('クリックで視点操作を開始',cw/2,ch-18*DPR);}
+}
+function movementSpeed(){return Math.hypot(game.velocityX||0,game.velocityZ||0);}
+function trainingElapsed(now){return (game.pauseStarted||now)-game.startTime-game.pausedTotal;}
+function updateMovementStatus(){
+ const moving=movementSpeed()>MOVEMENT.accurateSpeed;
+ $('movementStatus').textContent=game.stoppingMode==='straight'?'射撃精度：常にまっすぐ':moving?'移動中：射撃がぶれます':'停止精度：射撃OK';
+ $('movementStatus').style.color=moving&&game.stoppingMode==='required'?'#ff6476':'#56e98b';
+}
+function setTrainingLabels(aim){
+ const box=$('qNumber').closest('.hud-box');
+ box.querySelector('.hud-label').textContent=aim?'撃破 / ヘッドショット':'進行';
+ $('correctCount').parentElement.firstChild.textContent=aim?'命中 ':'正解 ';
+ $('timerText').previousElementSibling.textContent=aim?'残り時間':'TIME';
+ $('resultCorrect').parentElement.firstChild.textContent=aim?'撃破数':'正解数';
+}
+function loadAimPreferences(){
+ try{
+  const saved=JSON.parse(localStorage.getItem(AIM_PREFERENCES)||'{}');
+  for(const id of ['aimDuration','aimDistance','aimStopping'])if([...$(id).options].some(o=>o.value===saved[id]))$(id).value=saved[id];
+ }catch(e){console.warn('練習設定を復元できませんでした',e);}
+}
+function saveAimPreferences(){
+ try{localStorage.setItem(AIM_PREFERENCES,JSON.stringify(Object.fromEntries(['aimDuration','aimDistance','aimStopping'].map(id=>[id,$(id).value]))));}catch(e){console.warn('練習設定を保存できませんでした',e);}
+}
+function aimScoreKey(duration,distance,stopping){return `v1_${duration}_${distance}_${stopping}`;}
+function readAimScores(){try{return JSON.parse(localStorage.getItem(AIM_STORAGE)||'{}')||{};}catch{return {};}}
+function renderAimBest(){
+ const best=readAimScores()[aimScoreKey(Number($('aimDuration').value)*1000,$('aimDistance').value,$('aimStopping').value)];
+ $('aimBest').textContent=best?`この設定のベスト：${best.kills}撃破 / HS ${best.headshots} / 命中率 ${best.accuracy}%`:'この設定の記録はまだありません。';
+}
+function startAimTraining(retry=false){
+ const durationMs=retry?game.durationMs:Number($('aimDuration').value)*1000;
+ const aimDistance=retry?game.aimDistance:$('aimDistance').value;
+ const stoppingMode=retry?game.stoppingMode:$('aimStopping').value;
+ resetReticleShooting();Object.assign(game,{mode:'aim',sessionId:(game.sessionId||0)+1,durationMs,aimDistance,stoppingMode,distanceMode:'fixed',active:true,locked:false,pausedByMenu:false,
+  settingsFromPause:false,pauseStarted:0,pausedTotal:0,startTime:performance.now(),elapsed:0,lastFrame:performance.now(),
+  shots:0,hits:0,missShots:0,kills:0,headshots:0,bodyHits:0,movingShots:0,cooldownUntil:0,
+  playerX:0,playerY:0,playerZ:0,velocityX:0,velocityZ:0,moveKeys:{},shotMarks:[],projectedDots:[],targets:[],touchStart:null});
+ saveAimPreferences();setTrainingLabels(true);setYoutubePauseInteraction(false);
+ for(const id of ['pauseModal','settingsModal','explainModal','resultModal'])$(id).classList.add('hidden');
+ $('menuScreen').classList.add('hidden');$('gameScreen').classList.remove('hidden');
+ $('qNumber').textContent='0';$('qTotal').textContent='0';$('correctCount').textContent='0';
+ $('questionText').textContent='頭を狙う → 止まる → 撃つ';
+ $('questionMeta').textContent='頭1発 / 胴体3発 ｜ Escで一時停止 ｜ 練習用の簡易モデル';
+ $('timerText').textContent=formatTime(durationMs);$('statusToast').classList.remove('show');
+ resizeCanvas();centerAim();spawnAimTarget();updateAccuracy();updateMovementStatus();lockPointerForPlay();
+}
+function spawnAimTarget(){
+ const distances={near:8,middle:15,far:24};
+ const z=game.aimDistance==='random'?8+Math.random()*16:distances[game.aimDistance]||15;
+ const previous=game.aimTarget;
+ let x=(Math.random()*2-1)*Math.min(6,z*.32);
+ // Keep consecutive targets visually distinct without resetting the player's view.
+ if(previous&&Math.abs(x-previous.x)<.7)x=x>0?x-1.4:x+1.4;
+ game.aimTarget={x,y:0,z,bodyHits:0};
+}
+function aimHitPart(screenX,screenY){
+ // Intersect the shot ray with the same world plane used to draw the target.
+ const f=Math.min(cw,ch)*.92;
+ const rx=(screenX-cw/2)/f,ry=-(screenY-ch/2)/f;
+ const cp=Math.cos(game.pitch),sp=Math.sin(game.pitch),cy=Math.cos(game.yaw),sy=Math.sin(game.yaw);
+ const y=cp*ry-sp,z=sp*ry+cp;
+ const dx=cy*rx+sy*z,dz=-sy*rx+cy*z;
+ const t=game.aimTarget;
+ if(!t||dz<=0)return null;
+ const distance=(t.z-game.playerZ)/dz;if(distance<=0)return null;
+ const localX=game.playerX+dx*distance-t.x,localY=game.playerY+y*distance-t.y;
+ if(localX*localX+localY*localY<=.19*.19)return 'head';
+ if(Math.abs(localX)<=.29&&localY>=-1.21&&localY<=-.27)return 'body';
+ return null;
+}
+function fireAimTraining(cx,cy,now){
+ if(trainingElapsed(now)>=game.durationMs){finishAimTraining();return;}
+ const moving=game.stoppingMode==='required'&&movementSpeed()>MOVEMENT.accurateSpeed;
+ // Sample spread in angular space so resolution does not change its strength.
+ const spread=moving?Math.min(.12,movementSpeed()/MOVEMENT.speed*.12):0;
+ const angle=Math.random()*Math.PI*2,radius=Math.sqrt(Math.random())*spread;
+ const f=Math.min(cw,ch)*.92;
+ const shotX=cx+Math.cos(angle)*radius*f,shotY=cy+Math.sin(angle)*radius*f;
+ game.shots++;recordReticleShot(now);if(moving)game.movingShots++;
+ game.cooldownUntil=now+160;
+ game.shotMarks.push({fromX:cw*.5,fromY:ch*.84,x:shotX,y:shotY,time:now});
+ if(game.shotMarks.length>8)game.shotMarks.shift();
+ const part=aimHitPart(shotX,shotY);
+ if(part){
+  game.hits++;
+  if(part==='head'){game.headshots++;game.kills++;showToast('HEADSHOT','good');spawnAimTarget();}
+  else{game.bodyHits++;game.aimTarget.bodyHits++;if(game.aimTarget.bodyHits>=3){game.kills++;showToast('胴体で撃破','good');spawnAimTarget();}else showToast(`胴体命中：あと${3-game.aimTarget.bodyHits}発`,'good');}
+ }else{game.missShots++;showToast(moving?'MISS：減速してから撃ちましょう':'MISS','bad');}
+ $('qNumber').textContent=game.kills;$('qTotal').textContent=game.headshots;$('correctCount').textContent=game.hits;updateAccuracy();
+}
+function finishAimTraining(){
+ if(!game.active)return;
+ game.active=false;game.elapsed=game.durationMs;game.moveKeys={};game.velocityX=0;game.velocityZ=0;
+ releasePointerForUi();setYoutubePauseInteraction(false);$('timerText').textContent=formatTime(0);
+ const key=aimScoreKey(game.durationMs,game.aimDistance,game.stoppingMode),scores=readAimScores(),old=scores[key];
+ const record={kills:game.kills,headshots:game.headshots,accuracy:game.shots?accuracy():0};
+ const isRecord=!old||record.kills>old.kills||(record.kills===old.kills&&(record.headshots>old.headshots||(record.headshots===old.headshots&&record.accuracy>old.accuracy)));
+ let saved=true;
+ if(isRecord){scores[key]=record;try{localStorage.setItem(AIM_STORAGE,JSON.stringify(scores));}catch{saved=false;}}
+ $('resultModal').querySelector('h2').textContent=`${game.durationMs/1000}秒 エイム練習完了`;
+ $('resultTime').textContent=`${game.kills} 撃破`;$('resultCorrect').textContent=game.kills;
+ $('resultAccuracy').textContent=`${record.accuracy}%`;$('resultMisses').textContent=game.missShots;
+ $('recordMessage').textContent=`HS ${game.headshots} / 胴体命中 ${game.bodyHits} / 移動中の発射 ${game.movingShots}回。${!saved?'記録を保存できませんでした。':isRecord?'ベスト記録を保存しました。':`ベスト ${old.kills}撃破。`}`;
+ $('resultModal').classList.remove('hidden');renderAimBest();
+}
+function drawAimTraining(now){
+ drawRoomGrid(2);
+ const t=game.aimTarget;if(!t)return;
+ const body={x:t.x,y:t.y-.74,z:t.z,w:.58,h:.94,rotY:0};
+ drawWorldPanel(body,t.bodyHits?'#246c89':'#17506f','#63d7ff');
+ const points=[];
+ for(let i=0;i<32;i++){const angle=i*Math.PI/16;points.push(projectPoint(t.x+Math.cos(angle)*.19,t.y+Math.sin(angle)*.19,t.z));}
+ if(points.every(Boolean)){
+  ctx.beginPath();points.forEach((p,i)=>{if(i)ctx.lineTo(p.sx,p.sy);else ctx.moveTo(p.sx,p.sy);});ctx.closePath();
+  ctx.fillStyle='#ff6476';ctx.fill();ctx.strokeStyle='#ffced4';ctx.lineWidth=1.2*DPR;ctx.stroke();
+ }
+ drawBullets(now);
+ if(document.pointerLockElement!==canvas&&matchMedia('(pointer:fine)').matches){ctx.textAlign='center';ctx.fillStyle='#d9f5ff';ctx.font=`700 ${13*DPR}px system-ui`;ctx.fillText('クリックで視点操作を開始',cw/2,ch-18*DPR);}
 }
 function measureWrappedLines(c,text,maxWidth){const chars=[...String(text)];let lines=[''];for(const chh of chars){const test=lines[lines.length-1]+chh;if(c.measureText(test).width>maxWidth&&lines[lines.length-1])lines.push(chh);else lines[lines.length-1]=test}return lines;}
 function roundRect(c,x,y,w,h,r){const rr=Math.min(r,w/2,h/2);c.beginPath();c.moveTo(x+rr,y);c.arcTo(x+w,y,x+w,y+h,rr);c.arcTo(x+w,y+h,x,y+h,rr);c.arcTo(x,y+h,x,y,rr);c.arcTo(x,y,x+w,y,rr);c.closePath();}
